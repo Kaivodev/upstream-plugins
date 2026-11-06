@@ -1,0 +1,38 @@
+name: CI
+on:
+  push:
+    branches: ['**']
+  pull_request:
+  workflow_call:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      GOWORK: 'off'
+      GOCACHE: /private/tmp/codex-gocache/upstream-plugins
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
+        with:
+          go-version: '1.27.x'
+      - name: Prepare fixed build cache and dependencies
+        run: |
+          sudo install -d -o "$(id -u)" -g "$(id -g)" "$GOCACHE"
+          go mod download
+      - name: Select exact reactor toolchain
+        run: |
+          pinned_root="$(GOTOOLCHAIN=go1.27.3 go env GOROOT)"
+          echo "$pinned_root/bin" >> "$GITHUB_PATH"
+      - run: test -z "$(gofmt -l .)"
+      - name: Check, build, and replay all plugins
+        run: make check build plugins-replay
+      - name: Check module metadata stays unchanged
+        run: git diff --exit-code -- go.mod go.sum
+      - name: Vulnerability check
+        run: |
+          go install golang.org/x/vuln/cmd/govulncheck@v1.9.0
+          govulncheck ./...

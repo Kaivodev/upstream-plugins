@@ -1,0 +1,50 @@
+{
+  "type": "payment",
+  "code": "sim_json_rsa",
+  "version": "1.0.0",
+  "abi_version": 1,
+  "domains": [
+    "127.0.0.1"
+  ],
+  "secrets": {
+    "platform_private": "rsa-private"
+  },
+  "public_keys": [
+    "upstream_public"
+  ],
+  "config": {
+    "gateway": {
+      "type": "string",
+      "required": true
+    },
+    "account_id": {
+      "type": "string",
+      "required": true
+    }
+  },
+  "capabilities": [
+    "create_payment",
+    "query_payment",
+    "close_payment",
+    "refund",
+    "query_refund",
+    "verify_callback"
+  ],
+  "callback": {
+    "content_types": [
+      "application/json"
+    ],
+    "ack_status": 200,
+    "ack_body": "success",
+    "ack_content_type": "text/plain",
+    "methods": [
+      "POST"
+    ],
+    "allow_query": false
+  },
+  "build": {
+    "go_version": "go1.27.3",
+    "source_commit": "uncommitted",
+    "source_tree_sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+  }
+}

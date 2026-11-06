@@ -1,0 +1,43 @@
+{
+  "name": "close_payment/timeout",
+  "source": "constructed_transport_timeout_from_recorded_protocol",
+  "operation": "close_payment",
+  "input": {
+    "order_id": "test_close_payment_timeout",
+    "money": {
+      "amount": "12345",
+      "currency": "CNY"
+    }
+  },
+  "config": {
+    "account_id": "rsa-demo",
+    "gateway": "http://127.0.0.1:9080"
+  },
+  "time": "2026-11-06T06:06:27.785348Z",
+  "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "http://127.0.0.1:9080/api/rsa-demo/close",
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ],
+          "X-Signature": [
+            "TEST_SIGNATURE_REGENERATED_AT_REPLAY"
+          ]
+        },
+        "body": "eyJhY2NvdW50X2lkIjoicnNhLWRlbW8iLCJvcGVyYXRpb24iOiJjbG9zZSIsIm9yZGVyX2lkIjoidGVzdF9jbG9zZV9wYXltZW50X3RpbWVvdXQifQ=="
+      },
+      "error": "timeout"
+    }
+  ],
+  "expected": {
+    "category": "unknown",
+    "error_code": "transport_error",
+    "requests": 1,
+    "responses": 0,
+    "steps": 1
+  }
+}

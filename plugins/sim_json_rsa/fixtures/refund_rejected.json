@@ -1,0 +1,55 @@
+{
+  "name": "refund/rejected",
+  "source": "recorded_upstream_sim_loopback",
+  "operation": "refund",
+  "input": {
+    "order_id": "test_refund_rejected",
+    "refund_id": "test_refund_rejected_refund",
+    "money": {
+      "amount": "12345",
+      "currency": "CNY"
+    }
+  },
+  "config": {
+    "account_id": "rsa-demo",
+    "gateway": "http://127.0.0.1:9080"
+  },
+  "time": "2026-11-06T06:06:27.979727Z",
+  "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "http://127.0.0.1:9080/api/rsa-demo/refund",
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ],
+          "X-Signature": [
+            "TEST_SIGNATURE_REGENERATED_AT_REPLAY"
+          ]
+        },
+        "body": "eyJhY2NvdW50X2lkIjoicnNhLWRlbW8iLCJvcGVyYXRpb24iOiJyZWZ1bmQiLCJvcmRlcl9pZCI6InRlc3RfcmVmdW5kX3JlamVjdGVkIiwiYW1vdW50IjoxMjM0NSwiY3VycmVuY3kiOiJDTlkiLCJyZWZ1bmRfaWQiOiJ0ZXN0X3JlZnVuZF9yZWplY3RlZF9yZWZ1bmQifQ=="
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=utf-8"
+          ]
+        },
+        "body": "eyJyZXN1bHQiOiJyZWplY3RlZCIsImNvZGUiOiJyZWZ1bmRfZmFpbGVkIiwicmVmdW5kIjp7ImFjY291bnRfaWQiOiJyc2EtZGVtbyIsIm9yZGVyX2lkIjoidGVzdF9yZWZ1bmRfcmVqZWN0ZWQiLCJyZWZ1bmRfaWQiOiJ0ZXN0X3JlZnVuZF9yZWplY3RlZF9yZWZ1bmQiLCJhbW91bnQiOjEyMzQ1LCJjdXJyZW5jeSI6IkNOWSIsInN0YXR1cyI6ImZhaWxlZCJ9fQo="
+      }
+    }
+  ],
+  "expected": {
+    "category": "rejected",
+    "result": {
+      "outcome": "rejected",
+      "code": "refund_failed"
+    },
+    "requests": 1,
+    "responses": 1,
+    "steps": 2
+  }
+}

@@ -1,0 +1,64 @@
+{
+  "name": "refund/success",
+  "source": "recorded_upstream_sim_loopback",
+  "operation": "refund",
+  "input": {
+    "order_id": "test_refund_success",
+    "refund_id": "test_refund_success_refund",
+    "money": {
+      "amount": "12345",
+      "currency": "CNY"
+    }
+  },
+  "config": {
+    "account_id": "rsa-demo",
+    "gateway": "http://127.0.0.1:9080"
+  },
+  "time": "2026-11-06T06:06:27.932106Z",
+  "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "http://127.0.0.1:9080/api/rsa-demo/refund",
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ],
+          "X-Signature": [
+            "TEST_SIGNATURE_REGENERATED_AT_REPLAY"
+          ]
+        },
+        "body": "eyJhY2NvdW50X2lkIjoicnNhLWRlbW8iLCJvcGVyYXRpb24iOiJyZWZ1bmQiLCJvcmRlcl9pZCI6InRlc3RfcmVmdW5kX3N1Y2Nlc3MiLCJhbW91bnQiOjEyMzQ1LCJjdXJyZW5jeSI6IkNOWSIsInJlZnVuZF9pZCI6InRlc3RfcmVmdW5kX3N1Y2Nlc3NfcmVmdW5kIn0="
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=utf-8"
+          ]
+        },
+        "body": "eyJyZXN1bHQiOiJhY2NlcHRlZCIsImNvZGUiOiJyZWZ1bmRfc3VjY2VzcyIsInJlZnVuZCI6eyJhY2NvdW50X2lkIjoicnNhLWRlbW8iLCJvcmRlcl9pZCI6InRlc3RfcmVmdW5kX3N1Y2Nlc3MiLCJyZWZ1bmRfaWQiOiJ0ZXN0X3JlZnVuZF9zdWNjZXNzX3JlZnVuZCIsImFtb3VudCI6MTIzNDUsImN1cnJlbmN5IjoiQ05ZIiwic3RhdHVzIjoic3VjY2VzcyJ9fQo="
+      }
+    }
+  ],
+  "expected": {
+    "category": "completed",
+    "result": {
+      "outcome": "completed",
+      "refund": {
+        "order_id": "test_refund_success",
+        "refund_id": "test_refund_success_refund",
+        "upstream_refund_id": "test_refund_success_refund",
+        "money": {
+          "amount": "12345",
+          "currency": "CNY"
+        },
+        "status": "succeeded"
+      }
+    },
+    "requests": 1,
+    "responses": 1,
+    "steps": 2
+  }
+}

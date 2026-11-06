@@ -1,0 +1,44 @@
+{
+  "name": "query_refund/timeout",
+  "source": "constructed_transport_timeout_from_recorded_protocol",
+  "operation": "query_refund",
+  "input": {
+    "order_id": "test_query_refund_timeout",
+    "refund_id": "test_query_refund_timeout_refund",
+    "money": {
+      "amount": "12345",
+      "currency": "CNY"
+    }
+  },
+  "config": {
+    "account_id": "rsa-demo",
+    "gateway": "http://127.0.0.1:9080"
+  },
+  "time": "2026-11-06T06:06:28.169012Z",
+  "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "http://127.0.0.1:9080/api/rsa-demo/refund-query",
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ],
+          "X-Signature": [
+            "TEST_SIGNATURE_REGENERATED_AT_REPLAY"
+          ]
+        },
+        "body": "eyJhY2NvdW50X2lkIjoicnNhLWRlbW8iLCJvcGVyYXRpb24iOiJyZWZ1bmQtcXVlcnkiLCJvcmRlcl9pZCI6InRlc3RfcXVlcnlfcmVmdW5kX3RpbWVvdXQiLCJyZWZ1bmRfaWQiOiJ0ZXN0X3F1ZXJ5X3JlZnVuZF90aW1lb3V0X3JlZnVuZCJ9"
+      },
+      "error": "timeout"
+    }
+  ],
+  "expected": {
+    "category": "unknown",
+    "error_code": "transport_error",
+    "requests": 1,
+    "responses": 0,
+    "steps": 1
+  }
+}

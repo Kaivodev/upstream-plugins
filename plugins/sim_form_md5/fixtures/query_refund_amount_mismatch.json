@@ -1,0 +1,49 @@
+{
+  "name": "query_refund/amount_mismatch",
+  "source": "recorded_response_with_constructed_amount_fault",
+  "operation": "query_refund",
+  "input": {
+    "order_id": "test_query_refund_amount_mismatch",
+    "refund_id": "test_query_refund_amount_mismatch_refund",
+    "money": {
+      "amount": "12345",
+      "currency": "CNY"
+    }
+  },
+  "config": {
+    "account_id": "md5-demo",
+    "gateway": "http://127.0.0.1:9080"
+  },
+  "time": "2026-11-06T06:07:31.340364Z",
+  "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "http://127.0.0.1:9080/api/md5-demo/refund-query",
+        "headers": {
+          "Content-Type": [
+            "application/x-www-form-urlencoded"
+          ]
+        },
+        "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZvcGVyYXRpb249cmVmdW5kLXF1ZXJ5Jm9yZGVyX2lkPXRlc3RfcXVlcnlfcmVmdW5kX2Ftb3VudF9taXNtYXRjaCZyZWZ1bmRfaWQ9dGVzdF9xdWVyeV9yZWZ1bmRfYW1vdW50X21pc21hdGNoX3JlZnVuZCZzaWduPVRFU1RfU0lHTkFUVVJFX1JFR0VORVJBVEVEX0FUX1JFUExBWQ=="
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=utf-8"
+          ]
+        },
+        "body": "eyJjb2RlIjoicmVmdW5kX3N1Y2Nlc3MiLCJyZWZ1bmQiOnsiYWNjb3VudF9pZCI6Im1kNS1kZW1vIiwiYW1vdW50IjoxMjM0NiwiY3VycmVuY3kiOiJDTlkiLCJvcmRlcl9pZCI6InRlc3RfcXVlcnlfcmVmdW5kX2Ftb3VudF9taXNtYXRjaCIsInJlZnVuZF9pZCI6InRlc3RfcXVlcnlfcmVmdW5kX2Ftb3VudF9taXNtYXRjaF9yZWZ1bmQiLCJzdGF0dXMiOiJzdWNjZXNzIn0sInJlc3VsdCI6ImFjY2VwdGVkIn0="
+      }
+    }
+  ],
+  "expected": {
+    "category": "unknown",
+    "error_code": "amount_mismatch",
+    "requests": 1,
+    "responses": 1,
+    "steps": 2
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "verify_callback/signature_error",
+  "source": "recorded_upstream_sim_loopback",
+  "operation": "verify_callback",
+  "input": {
+    "order_id": "test_verify_callback_signature_error",
+    "money": {
+      "amount": "12345",
+      "currency": "CNY"
+    },
+    "method": "POST",
+    "headers": {
+      "Content-Type": [
+        "application/json"
+      ],
+      "X-Signature": [
+        "invalid-signature"
+      ]
+    },
+    "body": "eyJldmVudF9pZCI6InNpbV9jMTcxOTAyMmEzNjdmZDBmMGUyMDliMjFhOTE5NGIxYl9wYWlkIiwiYWNjb3VudF9pZCI6InJzYS1kZW1vIiwib3JkZXJfaWQiOiJ0ZXN0X3ZlcmlmeV9jYWxsYmFja19zaWduYXR1cmVfZXJyb3IiLCJ1cHN0cmVhbV9pZCI6InNpbV9jMTcxOTAyMmEzNjdmZDBmMGUyMDliMjFhOTE5NGIxYiIsImFtb3VudCI6MTIzNDUsImN1cnJlbmN5IjoiQ05ZIiwic3RhdHVzIjoicGFpZCIsInNlcXVlbmNlIjoyLCJwYWlkX2F0IjoiMjAyNi0xMS0wNlQwNjowNjoyOC4zNTkzNTRaIn0="
+  },
+  "config": {
+    "account_id": "rsa-demo",
+    "gateway": "http://127.0.0.1:9080"
+  },
+  "time": "2026-11-06T06:06:28.343378Z",
+  "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
+  "exchanges": [],
+  "expected": {
+    "category": "not_sent",
+    "error_code": "plugin_error",
+    "requests": 0,
+    "responses": 0,
+    "steps": 1
+  }
+}

@@ -1,0 +1,43 @@
+{
+  "name": "create_payment/timeout",
+  "source": "recorded_upstream_sim_loopback",
+  "operation": "create_payment",
+  "input": {
+    "order_id": "test_create_payment_timeout",
+    "money": {
+      "amount": "12345",
+      "currency": "CNY"
+    },
+    "method": "alipay",
+    "instruction": "url",
+    "callback_url": "http://127.0.0.1:53393/callback"
+  },
+  "config": {
+    "account_id": "md5-demo",
+    "gateway": "http://127.0.0.1:9080"
+  },
+  "time": "2026-11-06T06:07:28.81295Z",
+  "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "http://127.0.0.1:9080/api/md5-demo/create",
+        "headers": {
+          "Content-Type": [
+            "application/x-www-form-urlencoded"
+          ]
+        },
+        "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZhbW91bnQ9MTIzNDUmY2FsbGJhY2tfdXJsPWh0dHAlM0ElMkYlMkYxMjcuMC4wLjElM0E1MzM5MyUyRmNhbGxiYWNrJmN1cnJlbmN5PUNOWSZpbnN0cnVjdGlvbj11cmwmbWV0aG9kPWFsaXBheSZvcGVyYXRpb249Y3JlYXRlJm9yZGVyX2lkPXRlc3RfY3JlYXRlX3BheW1lbnRfdGltZW91dCZzaWduPVRFU1RfU0lHTkFUVVJFX1JFR0VORVJBVEVEX0FUX1JFUExBWQ=="
+      },
+      "error": "timeout"
+    }
+  ],
+  "expected": {
+    "category": "unknown",
+    "error_code": "transport_error",
+    "requests": 1,
+    "responses": 0,
+    "steps": 1
+  }
+}

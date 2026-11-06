@@ -1,0 +1,63 @@
+{
+  "name": "close_payment/success",
+  "source": "recorded_upstream_sim_loopback",
+  "operation": "close_payment",
+  "input": {
+    "order_id": "test_close_payment_success",
+    "money": {
+      "amount": "12345",
+      "currency": "CNY"
+    }
+  },
+  "config": {
+    "account_id": "rsa-demo",
+    "gateway": "http://127.0.0.1:9080"
+  },
+  "time": "2026-11-06T06:06:27.654439Z",
+  "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "http://127.0.0.1:9080/api/rsa-demo/close",
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ],
+          "X-Signature": [
+            "TEST_SIGNATURE_REGENERATED_AT_REPLAY"
+          ]
+        },
+        "body": "eyJhY2NvdW50X2lkIjoicnNhLWRlbW8iLCJvcGVyYXRpb24iOiJjbG9zZSIsIm9yZGVyX2lkIjoidGVzdF9jbG9zZV9wYXltZW50X3N1Y2Nlc3MifQ=="
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=utf-8"
+          ]
+        },
+        "body": "eyJyZXN1bHQiOiJhY2NlcHRlZCIsImNvZGUiOiJvayIsIm9yZGVyIjp7ImFjY291bnRfaWQiOiJyc2EtZGVtbyIsIm9yZGVyX2lkIjoidGVzdF9jbG9zZV9wYXltZW50X3N1Y2Nlc3MiLCJ1cHN0cmVhbV9pZCI6InNpbV8wNWU4ZjE5OTE3NmQyMzMwM2Q5MWExMjVmNTQ1MDk4ZiIsImFtb3VudCI6MTIzNDUsImN1cnJlbmN5IjoiQ05ZIiwibWV0aG9kIjoiYWxpcGF5Iiwic3RhdHVzIjoiY2xvc2VkIiwidXJsIjoiaHR0cDovLzEyNy4wLjAuMTo5MDgwL2Nhc2hpZXIvMDVlOGYxOTkxNzZkMjMzMDNkOTFhMTI1ZjU0NTA5OGYifX0K"
+      }
+    }
+  ],
+  "expected": {
+    "category": "completed",
+    "result": {
+      "outcome": "completed",
+      "payment": {
+        "order_id": "test_close_payment_success",
+        "upstream_id": "sim_05e8f199176d23303d91a125f545098f",
+        "money": {
+          "amount": "12345",
+          "currency": "CNY"
+        },
+        "status": "closed",
+        "url": "http://127.0.0.1:9080/cashier/05e8f199176d23303d91a125f545098f"
+      }
+    },
+    "requests": 1,
+    "responses": 1,
+    "steps": 2
+  }
+}

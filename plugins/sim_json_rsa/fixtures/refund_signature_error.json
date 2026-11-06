@@ -1,0 +1,55 @@
+{
+  "name": "refund/signature_error",
+  "source": "recorded_upstream_sim_loopback",
+  "operation": "refund",
+  "input": {
+    "order_id": "test_refund_signature_error",
+    "refund_id": "test_refund_signature_error_refund",
+    "money": {
+      "amount": "12345",
+      "currency": "CNY"
+    }
+  },
+  "config": {
+    "account_id": "rsa-demo",
+    "gateway": "http://127.0.0.1:9080"
+  },
+  "time": "2026-11-06T06:06:28.041717Z",
+  "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "http://127.0.0.1:9080/api/rsa-demo/refund",
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ],
+          "X-Signature": [
+            "TEST_SIGNATURE_REGENERATED_AT_REPLAY"
+          ]
+        },
+        "body": "eyJhY2NvdW50X2lkIjoicnNhLWRlbW8iLCJvcGVyYXRpb24iOiJyZWZ1bmQiLCJvcmRlcl9pZCI6InRlc3RfcmVmdW5kX3NpZ25hdHVyZV9lcnJvciIsImFtb3VudCI6MTIzNDUsImN1cnJlbmN5IjoiQ05ZIiwicmVmdW5kX2lkIjoidGVzdF9yZWZ1bmRfc2lnbmF0dXJlX2Vycm9yX3JlZnVuZCJ9"
+      },
+      "response": {
+        "status": 400,
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=utf-8"
+          ]
+        },
+        "body": "eyJyZXN1bHQiOiJyZWplY3RlZCIsImNvZGUiOiJpbnZhbGlkX3NpZ25hdHVyZSJ9Cg=="
+      }
+    }
+  ],
+  "expected": {
+    "category": "rejected",
+    "result": {
+      "outcome": "rejected",
+      "code": "invalid_signature"
+    },
+    "requests": 1,
+    "responses": 1,
+    "steps": 2
+  }
+}

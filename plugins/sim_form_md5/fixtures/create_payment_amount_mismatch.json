@@ -1,0 +1,51 @@
+{
+  "name": "create_payment/amount_mismatch",
+  "source": "recorded_response_with_constructed_amount_fault",
+  "operation": "create_payment",
+  "input": {
+    "order_id": "test_create_payment_amount_mismatch",
+    "money": {
+      "amount": "12345",
+      "currency": "CNY"
+    },
+    "method": "alipay",
+    "instruction": "url",
+    "callback_url": "http://127.0.0.1:53393/callback"
+  },
+  "config": {
+    "account_id": "md5-demo",
+    "gateway": "http://127.0.0.1:9080"
+  },
+  "time": "2026-11-06T06:07:30.855976Z",
+  "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "http://127.0.0.1:9080/api/md5-demo/create",
+        "headers": {
+          "Content-Type": [
+            "application/x-www-form-urlencoded"
+          ]
+        },
+        "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZhbW91bnQ9MTIzNDUmY2FsbGJhY2tfdXJsPWh0dHAlM0ElMkYlMkYxMjcuMC4wLjElM0E1MzM5MyUyRmNhbGxiYWNrJmN1cnJlbmN5PUNOWSZpbnN0cnVjdGlvbj11cmwmbWV0aG9kPWFsaXBheSZvcGVyYXRpb249Y3JlYXRlJm9yZGVyX2lkPXRlc3RfY3JlYXRlX3BheW1lbnRfYW1vdW50X21pc21hdGNoJnNpZ249VEVTVF9TSUdOQVRVUkVfUkVHRU5FUkFURURfQVRfUkVQTEFZ"
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=utf-8"
+          ]
+        },
+        "body": "eyJjb2RlIjoib2siLCJvcmRlciI6eyJhY2NvdW50X2lkIjoibWQ1LWRlbW8iLCJhbW91bnQiOjEyMzQ2LCJjdXJyZW5jeSI6IkNOWSIsIm1ldGhvZCI6ImFsaXBheSIsIm9yZGVyX2lkIjoidGVzdF9jcmVhdGVfcGF5bWVudF9hbW91bnRfbWlzbWF0Y2giLCJzdGF0dXMiOiJwZW5kaW5nIiwidXBzdHJlYW1faWQiOiJzaW1fZTI3MDJiOTM1YTdhMWZmZDZiMjgzZTU3MzVhZDNkOWIiLCJ1cmwiOiJodHRwOi8vMTI3LjAuMC4xOjkwODAvY2FzaGllci9lMjcwMmI5MzVhN2ExZmZkNmIyODNlNTczNWFkM2Q5YiJ9LCJyZXN1bHQiOiJhY2NlcHRlZCJ9"
+      }
+    }
+  ],
+  "expected": {
+    "category": "unknown",
+    "error_code": "amount_mismatch",
+    "requests": 1,
+    "responses": 1,
+    "steps": 2
+  }
+}

@@ -1,0 +1,58 @@
+{
+  "name": "verify_callback/success",
+  "source": "recorded_upstream_sim_loopback",
+  "operation": "verify_callback",
+  "input": {
+    "order_id": "test_verify_callback_success",
+    "money": {
+      "amount": "12345",
+      "currency": "CNY"
+    },
+    "method": "POST",
+    "headers": {
+      "Content-Type": [
+        "application/json"
+      ],
+      "X-Signature": [
+        "TEST_SIGNATURE_REGENERATED_AT_REPLAY"
+      ]
+    },
+    "body": "eyJldmVudF9pZCI6InNpbV81YjI1NDVlNTNhN2IxZTgxYzNiNTgyYjA2MmMxNjAyM19wYWlkIiwiYWNjb3VudF9pZCI6InJzYS1kZW1vIiwib3JkZXJfaWQiOiJ0ZXN0X3ZlcmlmeV9jYWxsYmFja19zdWNjZXNzIiwidXBzdHJlYW1faWQiOiJzaW1fNWIyNTQ1ZTUzYTdiMWU4MWMzYjU4MmIwNjJjMTYwMjMiLCJhbW91bnQiOjEyMzQ1LCJjdXJyZW5jeSI6IkNOWSIsInN0YXR1cyI6InBhaWQiLCJzZXF1ZW5jZSI6MiwicGFpZF9hdCI6IjIwMjYtMTEtMDZUMDY6MDY6MjguMzMwODEzWiJ9"
+  },
+  "config": {
+    "account_id": "rsa-demo",
+    "gateway": "http://127.0.0.1:9080"
+  },
+  "time": "2026-11-06T06:06:28.313254Z",
+  "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
+  "test_only_resign_callback": true,
+  "exchanges": [],
+  "expected": {
+    "category": "completed",
+    "result": {
+      "outcome": "completed",
+      "callback": {
+        "event_id": "sim_5b2545e53a7b1e81c3b582b062c16023_paid",
+        "order_id": "test_verify_callback_success",
+        "upstream_id": "sim_5b2545e53a7b1e81c3b582b062c16023",
+        "money": {
+          "amount": "12345",
+          "currency": "CNY"
+        },
+        "status": "paid",
+        "ack": {
+          "status": 200,
+          "headers": {
+            "Content-Type": [
+              "text/plain"
+            ]
+          },
+          "body": "c3VjY2Vzcw=="
+        }
+      }
+    },
+    "requests": 0,
+    "responses": 0,
+    "steps": 1
+  }
+}
