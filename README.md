@@ -37,7 +37,7 @@ loaded, err := h.Load(ctx, p) // 先加载/编译，调用路径只使用 Loaded
 result := h.Execute(ctx, loaded, abi.QueryPayment, inputJSON, env)
 ```
 
-`Services` 提供环境接口的便捷实现；Secret/PublicKey/HTTP 缺省均不可用。宿主为每一步创建全新实例，沙箱执行累计 200 ms、32 MiB；HTTP 每次默认 10 秒，使用方可用 `Options.RequestTimeout` 配置，最多 30 秒。生产宿主拒绝 `source_commit=uncommitted` 的包（`Options.TestOnlyAllowUncommitted` 仅供本地与回放），上传审批时应先用 `Manifest.Committed()` 拒绝。completed/rejected/unknown/not_sent 必须由业务层明确处理。尤其 unknown 保留原单并主动查询；回调通过也仅触发查单。默认 HTTPS，测试 HTTP 选项必须在生产配置拒绝。网络提供者必须遵守取消、不重试、不跳转并实施 DNS/IP/代理出口限制；本核心无法抢占不遵守 context 的任意 Go 环境实现。
+`Services` 提供环境接口的便捷实现；Secret/PublicKey/HTTP 缺省均不可用。宿主为每一步创建全新实例，每一步沙箱执行最多 200 ms、32 MiB；HTTP 每次默认 10 秒，使用方可用 `Options.RequestTimeout` 配置，最多 30 秒。生产宿主拒绝 `source_commit=uncommitted` 的包（`Options.TestOnlyAllowUncommitted` 仅供本地与回放），上传审批时应先用 `Manifest.Committed()` 拒绝。completed/rejected/unknown/not_sent 必须由业务层明确处理。尤其 unknown 保留原单并主动查询；回调通过也仅触发查单。默认 HTTPS，测试 HTTP 选项必须在生产配置拒绝。网络提供者必须遵守取消、不重试、不跳转并实施 DNS/IP/代理出口限制；本核心无法抢占不遵守 context 的任意 Go 环境实现。
 
 ## 编写插件
 

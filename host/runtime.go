@@ -199,7 +199,6 @@ type invocation struct {
 	stdout      bytes.Buffer
 	messages    []abi.LogRequest
 	logEvents   int
-	remaining   time.Duration
 	monotonic   int64
 	peak        uint32
 	alerted     bool
@@ -368,12 +367,10 @@ func (h *Host) step(ctx context.Context, l *Loaded, s *invocation, call abi.Call
 	if err != nil || len(b) > abi.MaxJSON {
 		return step, "input_limit"
 	}
-	if s.remaining <= 0 {
-		return step, "sandbox_timeout"
-	}
-	started := time.Now()
-	defer func() { s.remaining -= time.Since(started) }()
-	c, cancel := context.WithTimeout(context.WithValue(ctx, invocationKey{}, s), s.remaining)
+	// Each step (fresh instance plus one call) gets its own budget, so at most
+	// MaxSteps*SandboxTimeout of guest time per operation. A shared budget let
+	// load on early steps time out a later step after a request was sent.
+	c, cancel := context.WithTimeout(context.WithValue(ctx, invocationKey{}, s), SandboxTimeout)
 	defer cancel()
 	cfg := wazero.NewModuleConfig().WithName("").WithStartFunctions("_initialize").WithStdout(s).WithStderr(s).
 		WithWalltime(func() (int64, int32) { n := s.env.Now(); return n.Unix(), int32(n.Nanosecond()) }, 1).

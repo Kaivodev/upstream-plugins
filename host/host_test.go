@@ -315,7 +315,7 @@ func TestSecretNeverEntersGuestMemory(t *testing.T) {
 	rand.Read(secret)
 	secret = []byte(hex.EncodeToString(secret))
 	env.ResolveSecret = func(context.Context, string) ([]byte, error) { return secret, nil }
-	s := &invocation{manifest: l.manifest, env: env, secrets: map[string][]byte{"shared": secret}, config: map[string]string{"mode": "test"}, remaining: SandboxTimeout}
+	s := &invocation{manifest: l.manifest, env: env, secrets: map[string][]byte{"shared": secret}, config: map[string]string{"mode": "test"}}
 	ctx, cancel := context.WithTimeout(context.WithValue(context.Background(), invocationKey{}, s), SandboxTimeout)
 	defer cancel()
 	m, e := h.runtime.InstantiateModule(ctx, l.compiled, wazero.NewModuleConfig().WithName("").WithStartFunctions("_initialize"))
@@ -507,7 +507,7 @@ func TestReplayAdmission(t *testing.T) {
 func TestFreshInstances(t *testing.T) {
 	h, l := newTestHost(t, false)
 	env := testEnv()
-	s := &invocation{manifest: l.manifest, env: env, secrets: map[string][]byte{"shared": []byte(onlyTestSecret)}, config: map[string]string{"mode": "test"}, remaining: SandboxTimeout}
+	s := &invocation{manifest: l.manifest, env: env, secrets: map[string][]byte{"shared": []byte(onlyTestSecret)}, config: map[string]string{"mode": "test"}}
 	ctx := context.WithValue(context.Background(), operationKey{}, abi.QueryPayment)
 	for range 2 {
 		step, code := h.step(ctx, l, s, abi.Call{Input: testInput("state"), Responses: []abi.Response{}})

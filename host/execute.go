@@ -99,7 +99,7 @@ func (h *Host) Execute(ctx context.Context, l *Loaded, op abi.Operation, input [
 		out.ErrorCode = "input_json"
 		return
 	}
-	s := &invocation{manifest: l.manifest, env: env, secrets: map[string][]byte{}, config: map[string]string{}, remaining: SandboxTimeout}
+	s := &invocation{manifest: l.manifest, env: env, secrets: map[string][]byte{}, config: map[string]string{}}
 	defer func() {
 		out.PeakMemoryBytes = s.peak
 		if s.fault == "secret_leak" || out.ErrorCode == "secret_leak" {
