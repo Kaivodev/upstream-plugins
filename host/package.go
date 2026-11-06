@@ -18,9 +18,11 @@ import (
 	"github.com/Kaivodev/upstream-plugins/abi"
 )
 
-const MaxWasm = 16 << 20
+// An upload carries plugin.wasm, fixtures and the manifest in one gRPC
+// message, which servicekit caps at 16 MiB.
+const MaxWasm = 12 << 20
 const MaxManifest = 64 << 10
-const MaxFixtures = 16 << 20
+const MaxFixtures = 3 << 20
 
 type Field struct {
 	Type     string `json:"type"`

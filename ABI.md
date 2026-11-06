@@ -103,7 +103,7 @@ Part 为 `{data?: <Base64 bytes>, secret?: <reference name>}`，两者互斥；�
 
 manifest 字段以 `host.Manifest` 为准：type(payment/statement)、code(`^[a-z0-9_]{2,32}$`)、SemVer 2 version、abi_version、精确 domains、secrets(name → shared/rsa-private)、public_keys、config(name → `{type:"string",required:bool}`)、capabilities、callback、build。配置名称为 `^[a-z][a-z0-9_]{0,63}$`，密钥/公钥/非密钥配置不得重名。callback 包含 methods、allow_query、content_types、ack_status、ack_content_type、ack_body；build 包含 go_version、source_commit、source_tree_sha256。
 
-manifest 最大 64 KiB，plugin.wasm 最大 16 MiB。规范 manifest 为：严格解码到 Manifest 后重新序列化并将对象键按字节排序、无额外空白；数组顺序保留。包哈希 `SHA-256(normalized_manifest || plugin.wasm)`，不含分隔符和 fixtures。包目录与 fixture 文件禁止链接；fixtures 路径必须在 fixtures/ 下、规范相对路径、无重复/穿越，至多 256 个文件、单文件 1 MiB、总计 16 MiB。
+manifest 最大 64 KiB，plugin.wasm 最大 12 MiB（上传请求整体须在 payment 的 16 MiB gRPC 消息上限内）。规范 manifest 为：严格解码到 Manifest 后重新序列化并将对象键按字节排序、无额外空白；数组顺序保留。包哈希 `SHA-256(normalized_manifest || plugin.wasm)`，不含分隔符和 fixtures。包目录与 fixture 文件禁止链接；fixtures 路径必须在 fixtures/ 下、规范相对路径、无重复/穿越，至多 256 个文件、单文件 1 MiB、总计 3 MiB。
 
 Fixture 字段见 `host.Fixture`：name(operation/scenario)、source（来源说明）、operation、input、config、time（UTC RFC3339Nano）、random_seed（32 字节公开测试熵）、exchanges、expected，以及可选 test_only_resign_callback。每次操作回放使用固定 wall clock 和 SHA-256(seed||counter) 测试随机流；HTTP 替换为严格匹配录制请求的离线传输。请求的临时测试签名替换为 `TEST_SIGNATURE_REGENERATED_AT_REPLAY`；原始 JSON/其他业务字节仍精确比对。有效回调模板在内存中重新签名；fixture 不保存共享密钥/私钥。签名正确性另以真实录制和算法交叉测试验证。
 
