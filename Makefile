@@ -1,6 +1,5 @@
 SHELL := /bin/sh
 export GOWORK := off
-export GOCACHE := /private/tmp/codex-gocache/upstream-plugins
 export GOPROXY := off
 
 .PHONY: fmt check build plugins plugins-replay bench

@@ -1,7 +1,7 @@
 # Kaivo 上游插件开发规则
 
 - 本仓库是公开的独立 Go 模块，负责版本化 ABI、wazero 宿主核心、Go 插件 SDK、上游协议翻译和构建/回放工具。payment 与 reconciliation 提供审批、密钥、网络出口和业务状态机；本仓库不改变资金状态、不实现服务接入。
-- 只依赖标准库和固定版本 wazero，不使用 cgo、脚本引擎或私有模块。运行 Go 命令设置 GOWORK=off 和 GOCACHE=/private/tmp/codex-gocache/upstream-plugins。
+- 只依赖标准库和固定版本 wazero，不使用 cgo、脚本引擎或私有模块。运行 Go 命令设置 GOWORK=off；Codex 沙箱另设 GOCACHE=/private/tmp/codex-gocache/upstream-plugins，不写进 Makefile 或 CI。
 - 不保存真实密钥、商户号、凭据、个人信息；测试密钥运行时生成，fixtures 不能携带私钥或共享密钥。不得在日志、错误或回归报告中输出密钥。
 - ABI 不兼容变更必须升级 ABI 版本，同步修改 abi、ABI.md、sdk、host 和回归覆盖。声明能力必须有对应导出；M4 对账操作当前明确不支持。
 - 金额为带币种的十进制最小单位字符串，禁止浮点数。请求发出后的不确定失败只能报告结果未知。

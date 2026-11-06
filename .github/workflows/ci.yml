@@ -11,7 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GOWORK: 'off'
-      GOCACHE: /private/tmp/codex-gocache/upstream-plugins
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
@@ -19,10 +18,8 @@ jobs:
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
           go-version: '1.27.x'
-      - name: Prepare fixed build cache and dependencies
-        run: |
-          sudo install -d -o "$(id -u)" -g "$(id -g)" "$GOCACHE"
-          go mod download
+      - name: Download dependencies
+        run: go mod download
       - name: Select exact reactor toolchain
         run: |
           pinned_root="$(GOTOOLCHAIN=go1.27.3 go env GOROOT)"

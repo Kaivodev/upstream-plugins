@@ -10,7 +10,6 @@
 
 ```sh
 export GOWORK=off
-export GOCACHE=/private/tmp/codex-gocache/upstream-plugins
 make fmt check build plugins-replay
 make bench
 ```
