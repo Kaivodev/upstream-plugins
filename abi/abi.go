@@ -3,7 +3,7 @@ package abi
 
 import "encoding/json"
 
-const Version = 1
+const Version = 2
 const MaxJSON = 1 << 20
 
 type Operation string
@@ -15,11 +15,12 @@ const (
 	Refund         Operation = "refund"
 	QueryRefund    Operation = "query_refund"
 	VerifyCallback Operation = "verify_callback"
+	RouteCallback  Operation = "route_callback"
 	FetchStatement Operation = "fetch_statement"
 	ParseStatement Operation = "parse_statement"
 )
 
-var PaymentOperations = []Operation{CreatePayment, QueryPayment, ClosePayment, Refund, QueryRefund, VerifyCallback}
+var PaymentOperations = []Operation{CreatePayment, QueryPayment, ClosePayment, Refund, QueryRefund, RouteCallback, VerifyCallback}
 
 func (o Operation) Payment() bool {
 	for _, v := range PaymentOperations {
@@ -50,6 +51,16 @@ type RefundInput struct {
 	OrderID  string `json:"order_id"`
 	RefundID string `json:"refund_id"`
 	Money    Money  `json:"money"`
+}
+type RouteCallbackInput struct {
+	Method   string              `json:"method"`
+	RawQuery []byte              `json:"raw_query,omitempty"`
+	Headers  map[string][]string `json:"headers"`
+	Body     []byte              `json:"body"`
+	SourceIP string              `json:"source_ip,omitempty"`
+}
+type RouteCallbackOutput struct {
+	OrderID string `json:"order_id"`
 }
 type CallbackInput struct {
 	OrderID  string              `json:"order_id"`
@@ -82,11 +93,12 @@ type Step struct {
 	Result  *Result  `json:"result,omitempty"`
 }
 type Result struct {
-	Outcome  string          `json:"outcome"` // completed, rejected, unknown, error
-	Code     string          `json:"code,omitempty"`
-	Payment  *PaymentOutput  `json:"payment,omitempty"`
-	Refund   *RefundOutput   `json:"refund,omitempty"`
-	Callback *CallbackOutput `json:"callback,omitempty"`
+	Route    *RouteCallbackOutput `json:"route,omitempty"`
+	Outcome  string               `json:"outcome"` // completed, rejected, unknown, error
+	Code     string               `json:"code,omitempty"`
+	Payment  *PaymentOutput       `json:"payment,omitempty"`
+	Refund   *RefundOutput        `json:"refund,omitempty"`
+	Callback *CallbackOutput      `json:"callback,omitempty"`
 }
 type PaymentOutput struct {
 	OrderID    string `json:"order_id"`
@@ -96,6 +108,7 @@ type PaymentOutput struct {
 	URL        string `json:"url,omitempty"`
 	QRCode     string `json:"qrcode,omitempty"`
 	PaidAt     string `json:"paid_at,omitempty"`
+	ExpiresAt  string `json:"expires_at,omitempty"`
 }
 type RefundOutput struct {
 	OrderID          string `json:"order_id"`

@@ -3,8 +3,8 @@
   "source": "recorded_response_with_constructed_amount_fault",
   "operation": "refund",
   "input": {
-    "order_id": "test_refund_amount_mismatch",
-    "refund_id": "test_refund_amount_mismatch_refund",
+    "order_id": "test_20261106113320971633000_refund_amount_mismatch",
+    "refund_id": "test_20261106113320971633000_refund_amount_mismatch_refund",
     "money": {
       "amount": "12345",
       "currency": "CNY"
@@ -14,7 +14,7 @@
     "account_id": "md5-demo",
     "gateway": "http://127.0.0.1:9080"
   },
-  "time": "2026-11-06T06:07:31.195365Z",
+  "time": "2026-11-06T11:33:23.353301Z",
   "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
   "exchanges": [
     {
@@ -26,7 +26,7 @@
             "application/x-www-form-urlencoded"
           ]
         },
-        "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZhbW91bnQ9MTIzNDUmY3VycmVuY3k9Q05ZJm9wZXJhdGlvbj1yZWZ1bmQmb3JkZXJfaWQ9dGVzdF9yZWZ1bmRfYW1vdW50X21pc21hdGNoJnJlZnVuZF9pZD10ZXN0X3JlZnVuZF9hbW91bnRfbWlzbWF0Y2hfcmVmdW5kJnNpZ249VEVTVF9TSUdOQVRVUkVfUkVHRU5FUkFURURfQVRfUkVQTEFZ"
+        "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZhbW91bnQ9MTIzNDUmY3VycmVuY3k9Q05ZJm9wZXJhdGlvbj1yZWZ1bmQmb3JkZXJfaWQ9dGVzdF8yMDI2MTEwNjExMzMyMDk3MTYzMzAwMF9yZWZ1bmRfYW1vdW50X21pc21hdGNoJnJlZnVuZF9pZD10ZXN0XzIwMjYxMTA2MTEzMzIwOTcxNjMzMDAwX3JlZnVuZF9hbW91bnRfbWlzbWF0Y2hfcmVmdW5kJnNpZ249VEVTVF9TSUdOQVRVUkVfUkVHRU5FUkFURURfQVRfUkVQTEFZ"
       },
       "response": {
         "status": 200,
@@ -35,7 +35,7 @@
             "application/json; charset=utf-8"
           ]
         },
-        "body": "eyJjb2RlIjoicmVmdW5kX3N1Y2Nlc3MiLCJyZWZ1bmQiOnsiYWNjb3VudF9pZCI6Im1kNS1kZW1vIiwiYW1vdW50IjoxMjM0NiwiY3VycmVuY3kiOiJDTlkiLCJvcmRlcl9pZCI6InRlc3RfcmVmdW5kX2Ftb3VudF9taXNtYXRjaCIsInJlZnVuZF9pZCI6InRlc3RfcmVmdW5kX2Ftb3VudF9taXNtYXRjaF9yZWZ1bmQiLCJzdGF0dXMiOiJzdWNjZXNzIn0sInJlc3VsdCI6ImFjY2VwdGVkIn0="
+        "body": "eyJjb2RlIjoicmVmdW5kX3N1Y2Nlc3MiLCJyZWZ1bmQiOnsiYWNjb3VudF9pZCI6Im1kNS1kZW1vIiwiYW1vdW50IjoxMjM0NiwiY3VycmVuY3kiOiJDTlkiLCJvcmRlcl9pZCI6InRlc3RfMjAyNjExMDYxMTMzMjA5NzE2MzMwMDBfcmVmdW5kX2Ftb3VudF9taXNtYXRjaCIsInJlZnVuZF9pZCI6InRlc3RfMjAyNjExMDYxMTMzMjA5NzE2MzMwMDBfcmVmdW5kX2Ftb3VudF9taXNtYXRjaF9yZWZ1bmQiLCJzdGF0dXMiOiJzdWNjZXNzIn0sInJlc3VsdCI6ImFjY2VwdGVkIn0="
       }
     }
   ],

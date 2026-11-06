@@ -27,7 +27,7 @@ import (
 	"github.com/tetratelabs/wazero"
 )
 
-var malicious, unknown, network []byte
+var malicious, unknown, network, legacy []byte
 var onlyTestSecret string
 var pluginPackages []Package
 
@@ -41,9 +41,15 @@ func TestMain(m *testing.M) {
 		panic(e)
 	}
 	onlyTestSecret = hex.EncodeToString(secret)
-	for _, name := range []string{"malicious", "unknown", "network"} {
+	for _, name := range []string{"malicious", "unknown", "network", "legacy"} {
 		out := filepath.Join(tmp, name+".wasm")
-		c := exec.Command("go", "build", "-trimpath", "-buildvcs=false", "-buildmode=c-shared", "-ldflags=-buildid= -X main.testSecret="+onlyTestSecret, "-o", out, "./testdata/"+name)
+		source := name
+		flags := "-buildid= -X main.testSecret=" + onlyTestSecret
+		if name == "legacy" {
+			source = "malicious"
+			flags += " -X main.forceV1=yes"
+		}
+		c := exec.Command("go", "build", "-trimpath", "-buildvcs=false", "-buildmode=c-shared", "-ldflags="+flags, "-o", out, "./testdata/"+source)
 		c.Env = wasmEnv()
 		if b, e := c.CombinedOutput(); e != nil {
 			panic(string(b))
@@ -53,6 +59,8 @@ func TestMain(m *testing.M) {
 			panic(e)
 		}
 		switch name {
+		case "legacy":
+			legacy = b
 		case "malicious":
 			malicious = b
 		case "unknown":
@@ -61,7 +69,7 @@ func TestMain(m *testing.M) {
 			network = b
 		}
 	}
-	for _, name := range []string{"sim_json_rsa", "sim_form_md5"} {
+	for _, name := range []string{"sim_json_rsa", "sim_form_md5", "sim_json_rsa_verify", "sim_form_md5_verify"} {
 		dir := filepath.Join(tmp, name)
 		if e = os.MkdirAll(dir, 0755); e != nil {
 			panic(e)
@@ -110,7 +118,7 @@ func wasmEnv() []string {
 	return env
 }
 func testManifest() Manifest {
-	return Manifest{Type: "payment", Code: "test_plugin", Version: "1.0.0", ABIVersion: 1, Domains: []string{"allowed.example"}, Secrets: map[string]string{"shared": "shared"}, PublicKeys: []string{}, Config: map[string]Field{"mode": {Type: "string", Required: true}}, Capabilities: []abi.Operation{abi.QueryPayment, abi.VerifyCallback}, Callback: &CallbackRules{Methods: []string{"POST"}, ContentTypes: []string{"application/json"}, AckContentType: "text/plain", AckStatus: 200, AckBody: "success"}, Build: BuildInfo{GoVersion: "go1.27.3", SourceCommit: "uncommitted", SourceTreeSHA256: strings.Repeat("0", 64)}}
+	return Manifest{Type: "payment", Code: "test_plugin", Version: "1.0.0", ABIVersion: abi.Version, Domains: []string{"allowed.example"}, Secrets: map[string]string{"shared": "shared"}, PublicKeys: []string{}, Config: map[string]Field{"mode": {Type: "string", Required: true}}, Capabilities: []abi.Operation{abi.QueryPayment, abi.RouteCallback, abi.VerifyCallback}, Callback: &CallbackRules{Methods: []string{"POST"}, ContentTypes: []string{"application/json"}, AckContentType: "text/plain", AckStatus: 200, AckBody: "success"}, Build: BuildInfo{GoVersion: "go1.27.3", SourceCommit: "uncommitted", SourceTreeSHA256: strings.Repeat("0", 64)}}
 }
 func testPackage(w []byte) Package {
 	b, _ := json.Marshal(testManifest())
@@ -293,7 +301,7 @@ func TestImportsExportsManifestAndCache(t *testing.T) {
 	if _, e = h.Load(context.Background(), Package{ManifestJSON: b, Wasm: malicious}); e == nil {
 		t.Fatal("statement accepted")
 	}
-	for _, mutate := range []func(*Manifest){func(m *Manifest) { m.Domains = []string{"*.example"} }, func(m *Manifest) { m.Version = "1.0.0-01" }, func(m *Manifest) { m.ABIVersion = 2 }, func(m *Manifest) { m.Secrets["bad-name"] = "shared" }, func(m *Manifest) { m.Build.SourceTreeSHA256 = "x" }, func(m *Manifest) { m.Capabilities = append(m.Capabilities, abi.QueryPayment) }} {
+	for _, mutate := range []func(*Manifest){func(m *Manifest) { m.Domains = []string{"*.example"} }, func(m *Manifest) { m.Version = "1.0.0-01" }, func(m *Manifest) { m.ABIVersion = 1 }, func(m *Manifest) { m.Secrets["bad-name"] = "shared" }, func(m *Manifest) { m.Build.SourceTreeSHA256 = "x" }, func(m *Manifest) { m.Capabilities = append(m.Capabilities, abi.QueryPayment) }} {
 		m := testManifest()
 		mutate(&m)
 		if m.Validate() == nil {
@@ -362,7 +370,11 @@ func TestPluginReplayDeterminism(t *testing.T) {
 			}
 			var r Report
 			_ = abi.Decode(a, &r)
-			if len(r.Cases) != 28 {
+			want := 30
+			if m.Type == "verification" {
+				want = 10
+			}
+			if len(r.Cases) != want {
 				t.Fatal("missing scenarios", len(r.Cases))
 			}
 			for _, c := range r.Cases {
@@ -380,7 +392,7 @@ func TestPluginSignaturesAgainstPeerAlgorithms(t *testing.T) {
 	}
 	for _, p := range pluginPackages {
 		m, _, _ := p.Manifest()
-		h, e := New(context.Background(), Options{PluginType: "payment", TestOnlyAllowHTTP: true, TestOnlyAllowUncommitted: true})
+		h, e := New(context.Background(), Options{PluginType: m.Type, TestOnlyAllowHTTP: true, TestOnlyAllowUncommitted: true})
 		if e != nil {
 			t.Fatal(e)
 		}
@@ -402,10 +414,14 @@ func TestPluginSignaturesAgainstPeerAlgorithms(t *testing.T) {
 				body, _ := io.ReadAll(r.Body)
 				r.Body = io.NopCloser(bytes.NewReader(body))
 				count++
-				if m.Code == "sim_json_rsa" {
+				if strings.HasPrefix(m.Code, "sim_json_rsa") {
+					requestKey := &keys.Platform.PublicKey
+					if m.Type == "verification" {
+						requestKey = &keys.Query.PublicKey
+					}
 					sig, e := base64.StdEncoding.DecodeString(r.Header.Get("X-Signature"))
 					d := sha256.Sum256(body)
-					if e != nil || rsa.VerifyPKCS1v15(&keys.Platform.PublicKey, crypto.SHA256, d[:], sig) != nil {
+					if e != nil || rsa.VerifyPKCS1v15(requestKey, crypto.SHA256, d[:], sig) != nil {
 						t.Fatal("RSA request differs from upstream algorithm")
 					}
 				} else {
@@ -417,7 +433,11 @@ func TestPluginSignaturesAgainstPeerAlgorithms(t *testing.T) {
 					if e != nil {
 						t.Fatal(e)
 					}
-					d := md5.Sum(append([]byte(canonical+"&key="), keys.Shared...))
+					shared := keys.Shared
+					if m.Type == "verification" {
+						shared = keys.QueryShared
+					}
+					d := md5.Sum(append([]byte(canonical+"&key="), shared...))
 					if v.Get("sign") != hex.EncodeToString(d[:]) {
 						t.Fatal("MD5 request differs from upstream algorithm")
 					}
@@ -435,7 +455,7 @@ func TestPluginSignaturesAgainstPeerAlgorithms(t *testing.T) {
 			if r.Category != Completed {
 				t.Fatal(m.Code, path, r)
 			}
-			if f.Operation != abi.VerifyCallback && count != 1 {
+			if f.Operation != abi.VerifyCallback && f.Operation != abi.RouteCallback && count != 1 {
 				t.Fatal("request not verified")
 			}
 		}
@@ -447,7 +467,11 @@ func BenchmarkFresh(b *testing.B) {
 		m, _, _ := p.Manifest()
 		b.Run(m.Code, func(b *testing.B) {
 			var fixture Fixture
-			_ = abi.Decode(p.Fixtures["fixtures/verify_callback_success.json"], &fixture)
+			path := "fixtures/verify_callback_success.json"
+			if m.Type == "verification" {
+				path = "fixtures/query_payment_success.json"
+			}
+			_ = abi.Decode(p.Fixtures[path], &fixture)
 			keys, e := NewTestCredentials()
 			if e != nil {
 				b.Fatal(e)
@@ -455,7 +479,7 @@ func BenchmarkFresh(b *testing.B) {
 			if e = keys.SignCallback(&fixture); e != nil {
 				b.Fatal(e)
 			}
-			h, e := New(context.Background(), Options{PluginType: "payment", TestOnlyAllowUncommitted: true})
+			h, e := New(context.Background(), Options{PluginType: m.Type, TestOnlyAllowHTTP: true, TestOnlyAllowUncommitted: true})
 			if e != nil {
 				b.Fatal(e)
 			}
@@ -473,6 +497,7 @@ func BenchmarkFresh(b *testing.B) {
 			b.ReportAllocs()
 			b.ResetTimer()
 			for range b.N {
+				env.HTTP = &fixtureTransport{exchanges: fixture.Exchanges}
 				started := time.Now()
 				r := h.Execute(context.Background(), l, fixture.Operation, fixture.Input, env)
 				samples = append(samples, time.Since(started))

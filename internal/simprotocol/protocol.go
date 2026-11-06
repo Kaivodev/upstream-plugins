@@ -57,6 +57,8 @@ type wireOrder struct {
 	URL        string `json:"url,omitempty"`
 	QRCode     string `json:"qrcode,omitempty"`
 	PaidAt     string `json:"paid_at,omitempty"`
+	ExpiresAt  string `json:"expires_at,omitempty"`
+	ExpireTime string `json:"expire_time,omitempty"`
 }
 type wireRefund struct {
 	AccountID string `json:"account_id"`
@@ -85,17 +87,28 @@ type Event struct {
 }
 
 func Register(style string) {
-	for _, op := range abi.PaymentOperations {
+	register(style, false)
+}
+func RegisterVerification(style string) { register(style, true) }
+func register(style string, verification bool) {
+	ops := abi.PaymentOperations
+	if verification {
+		ops = []abi.Operation{abi.QueryPayment, abi.QueryRefund}
+	}
+	for _, op := range ops {
 		op := op
 		sdk.Register(op, func(c sdk.Call) sdk.Step {
+			if op == abi.RouteCallback {
+				return route(style, c)
+			}
 			if op == abi.VerifyCallback {
 				return callback(style, c)
 			}
-			return payment(style, op, c)
+			return payment(style, verification, op, c)
 		})
 	}
 }
-func payment(style string, op abi.Operation, c sdk.Call) sdk.Step {
+func payment(style string, verification bool, op abi.Operation, c sdk.Call) sdk.Step {
 	account, err := sdk.Config("account_id")
 	if err != nil {
 		return sdk.Fail("config")
@@ -132,7 +145,15 @@ func payment(style string, op abi.Operation, c sdk.Call) sdk.Step {
 		if o == nil || res.Refund != nil || o.AccountID != account || o.Amount <= 0 {
 			return sdk.Fail("payment_response")
 		}
-		return sdk.Result(abi.Result{Outcome: "completed", Payment: &abi.PaymentOutput{OrderID: o.OrderID, UpstreamID: o.UpstreamID, Money: abi.Money{Amount: strconv.FormatInt(o.Amount, 10), Currency: o.Currency}, Status: o.Status, URL: o.URL, QRCode: o.QRCode, PaidAt: o.PaidAt}})
+		expires := ""
+		if op == abi.CreatePayment && o.Status == "pending" {
+			if style == "json-rsa" {
+				expires = o.ExpiresAt
+			} else {
+				expires = o.ExpireTime
+			}
+		}
+		return sdk.Result(abi.Result{Outcome: "completed", Payment: &abi.PaymentOutput{OrderID: o.OrderID, UpstreamID: o.UpstreamID, Money: abi.Money{Amount: strconv.FormatInt(o.Amount, 10), Currency: o.Currency}, Status: o.Status, URL: o.URL, QRCode: o.QRCode, PaidAt: o.PaidAt, ExpiresAt: expires}})
 	}
 	gateway, err := sdk.Config("gateway")
 	if err != nil {
@@ -176,6 +197,10 @@ func payment(style string, op abi.Operation, c sdk.Call) sdk.Step {
 	default:
 		return sdk.Fail("operation")
 	}
+	privateRef, sharedRef := "platform_private", "shared"
+	if verification {
+		privateRef, sharedRef = "query_private_key", "query_key"
+	}
 	headers := map[string][]string{}
 	var body []byte
 	if style == "json-rsa" {
@@ -183,7 +208,7 @@ func payment(style string, op abi.Operation, c sdk.Call) sdk.Step {
 		if err != nil {
 			return sdk.Fail("encode")
 		}
-		sig, e := sdk.Sign("rsa-sha256", "platform_private", sdk.Bytes(body))
+		sig, e := sdk.Sign("rsa-sha256", privateRef, sdk.Bytes(body))
 		if e != nil {
 			return sdk.Fail("sign")
 		}
@@ -207,7 +232,7 @@ func payment(style string, op abi.Operation, c sdk.Call) sdk.Step {
 		if e != nil {
 			return sdk.Fail("canonical")
 		}
-		sig, e := sdk.Sign("md5", "", sdk.Bytes([]byte(canonical+"&key=")), sdk.Secret("shared"))
+		sig, e := sdk.Sign("md5", "", sdk.Bytes([]byte(canonical+"&key=")), sdk.Secret(sharedRef))
 		if e != nil {
 			return sdk.Fail("sign")
 		}
@@ -299,4 +324,30 @@ func firstHeader(h map[string][]string, name string) string {
 		return v[0]
 	}
 	return ""
+}
+
+// Routing returns only an untrusted clue; authentication follows with a snapshot.
+func route(style string, c sdk.Call) sdk.Step {
+	v, err := sdk.Input[abi.RouteCallbackInput](c)
+	if err != nil || len(c.Responses) != 0 || v.Method != "POST" || len(v.RawQuery) != 0 {
+		return sdk.Fail("route_input")
+	}
+	var order string
+	if style == "json-rsa" {
+		var event Event
+		if abi.Decode(v.Body, &event) != nil {
+			return sdk.Fail("route_json")
+		}
+		order = event.OrderID
+	} else {
+		values, e := url.ParseQuery(string(v.Body))
+		if e != nil {
+			return sdk.Fail("route_form")
+		}
+		if _, e = CanonicalForm(values); e != nil {
+			return sdk.Fail("route_form")
+		}
+		order = values.Get("order_id")
+	}
+	return sdk.Result(abi.Result{Outcome: "completed", Route: &abi.RouteCallbackOutput{OrderID: order}})
 }

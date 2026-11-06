@@ -3,20 +3,20 @@
   "source": "recorded_upstream_sim_loopback",
   "operation": "create_payment",
   "input": {
-    "order_id": "test_create_payment_signature_error",
+    "order_id": "test_20261106113317445452000_create_payment_signature_error",
     "money": {
       "amount": "12345",
       "currency": "CNY"
     },
     "method": "alipay",
     "instruction": "url",
-    "callback_url": "http://127.0.0.1:53199/callback"
+    "callback_url": "http://127.0.0.1:51064/callback"
   },
   "config": {
     "account_id": "rsa-demo",
     "gateway": "http://127.0.0.1:9080"
   },
-  "time": "2026-11-06T06:06:27.431984Z",
+  "time": "2026-11-06T11:33:19.485963Z",
   "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
   "exchanges": [
     {
@@ -31,7 +31,7 @@
             "TEST_SIGNATURE_REGENERATED_AT_REPLAY"
           ]
         },
-        "body": "eyJhY2NvdW50X2lkIjoicnNhLWRlbW8iLCJvcGVyYXRpb24iOiJjcmVhdGUiLCJvcmRlcl9pZCI6InRlc3RfY3JlYXRlX3BheW1lbnRfc2lnbmF0dXJlX2Vycm9yIiwiYW1vdW50IjoxMjM0NSwiY3VycmVuY3kiOiJDTlkiLCJtZXRob2QiOiJhbGlwYXkiLCJpbnN0cnVjdGlvbiI6InVybCIsImNhbGxiYWNrX3VybCI6Imh0dHA6Ly8xMjcuMC4wLjE6NTMxOTkvY2FsbGJhY2sifQ=="
+        "body": "eyJhY2NvdW50X2lkIjoicnNhLWRlbW8iLCJvcGVyYXRpb24iOiJjcmVhdGUiLCJvcmRlcl9pZCI6InRlc3RfMjAyNjExMDYxMTMzMTc0NDU0NTIwMDBfY3JlYXRlX3BheW1lbnRfc2lnbmF0dXJlX2Vycm9yIiwiYW1vdW50IjoxMjM0NSwiY3VycmVuY3kiOiJDTlkiLCJtZXRob2QiOiJhbGlwYXkiLCJpbnN0cnVjdGlvbiI6InVybCIsImNhbGxiYWNrX3VybCI6Imh0dHA6Ly8xMjcuMC4wLjE6NTEwNjQvY2FsbGJhY2sifQ=="
       },
       "response": {
         "status": 400,

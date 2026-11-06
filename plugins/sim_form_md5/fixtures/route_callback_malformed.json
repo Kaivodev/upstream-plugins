@@ -1,0 +1,28 @@
+{
+  "name": "route_callback/malformed",
+  "source": "recorded_callback_with_constructed_malformed_body",
+  "operation": "route_callback",
+  "input": {
+    "method": "POST",
+    "headers": {
+      "Content-Type": [
+        "application/x-www-form-urlencoded"
+      ]
+    },
+    "body": "bWFsZm9ybWVkJQ=="
+  },
+  "config": {
+    "account_id": "md5-demo",
+    "gateway": "http://127.0.0.1:9080"
+  },
+  "time": "2026-11-06T11:33:23.530453Z",
+  "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
+  "exchanges": [],
+  "expected": {
+    "category": "not_sent",
+    "error_code": "plugin_error",
+    "requests": 0,
+    "responses": 0,
+    "steps": 1
+  }
+}

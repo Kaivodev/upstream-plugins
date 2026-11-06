@@ -2,7 +2,8 @@ SHELL := /bin/sh
 export GOWORK := off
 export GOPROXY := off
 
-.PHONY: fmt check build plugins plugins-replay bench
+.PHONY: fmt check build plugins plugins-replay plugins-verify bench
+PLUGINS := sim_json_rsa sim_form_md5 sim_json_rsa_verify sim_form_md5_verify
 fmt:
 	gofmt -w .
 check:
@@ -11,10 +12,13 @@ check:
 build:
 	CGO_ENABLED=0 go build -trimpath -buildvcs=false -o bin/pluginctl ./cmd/pluginctl
 plugins: build
-	bin/pluginctl build --source plugins/sim_json_rsa --out dist/sim_json_rsa
-	bin/pluginctl build --source plugins/sim_form_md5 --out dist/sim_form_md5
+	@set -e; for plugin in $(PLUGINS); do bin/pluginctl build --source plugins/$$plugin --out dist/$$plugin; done
 plugins-replay: plugins
-	bin/pluginctl replay --dir dist/sim_json_rsa --out dist/sim_json_rsa/regression-report.json
-	bin/pluginctl replay --dir dist/sim_form_md5 --out dist/sim_form_md5/regression-report.json
+	@set -e; for plugin in $(PLUGINS); do bin/pluginctl replay --dir dist/$$plugin --out dist/$$plugin/regression-report.json; done
+plugins-verify: plugins-replay
+	@set -e; for plugin in $(PLUGINS); do \
+		bin/pluginctl package --dir dist/$$plugin --out dist/packages/$$plugin; \
+		bin/pluginctl verify --source plugins/$$plugin --dir dist/packages/$$plugin; \
+	done
 bench:
 	go test ./host -run '^$$' -bench BenchmarkFresh -benchmem

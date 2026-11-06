@@ -1,6 +1,23 @@
-# Kaivo plugin ABI v1
+# Kaivo plugin ABI v2
 
-`abi.Version = 1`。不兼容修改必须升级版本，宿主与 SDK 同步修改。ABI 包只使用标准库，可以编译到 `wasip1/wasm`。当前仅实现 `payment`；`fetch_statement`、`parse_statement` 保留给 M4，声明它们的 statement 包当前不能加载。
+`abi.Version = 2`。不兼容修改必须升级版本，宿主与 SDK 同步修改。ABI 包只使用标准库，可以编译到 `wasip1/wasm`。当前实现 `payment` 与 `verification`；`fetch_statement`、`parse_statement` 保留给 M4，声明它们的 statement 包当前不能加载。
+
+## 相对 v1 的变化
+
+v0.2.0 直接替换尚无生产插件的 v1；宿主不接受 v1 manifest，运行时也核对 reactor 的 `abi_version`，两者都必须为 2。
+
+| 变化 | v2 约定 |
+| --- | --- |
+| 支付指引到期 | PaymentOutput 新增可选 `expires_at`；只允许 create_payment 的 pending 且带 url/qrcode；UTC RFC3339Nano，严格晚于宿主校验时刻，最多未来 24 小时（含边界） |
+| 原始回调路由 | 新增 route_callback，先提取不可信 order_id；服务查候选原订单后，使用原订单快照调用 verify_callback |
+| 独立核验 | 新增 verification 类型，只允许 query_payment/query_refund，必须使用上游另发的只读查询凭据 |
+| 源码摘要 | 从整个模块收窄为固定 WASI 构建环境下该插件的模块内构建闭包，编码见下文 |
+
+未提供 `expires_at` 时，由 payment 使用自身配置的默认展示期限；展示到期不能证明上游未收款。非法时间与其他非法输出使用相同分类：已派发为 unknown，未派发为 not_sent。
+
+route_callback 使用 `result.route = {order_id}`；不验签、不代表真实订单归属或付款事实。宿主不解析该次调用的任何密钥/公钥，禁止 sign、verify 和 HTTP（含初始化期间调用），允许非密钥 config、equal 和日志；不能通过 config 读取密钥引用。无法路由、格式错误、非法订单号均归 not_sent。声明 verify_callback 的 payment 包必须同时声明并导出 route_callback，两者共用 manifest 的 method/content-type/query 限制。服务必须保留候选订单的 channel/account 绑定校验，验回调成功也只触发主动查单。
+
+verification 的能力集合必须恰好为 query_payment 与 query_refund，无 callback 段。`Options.PluginType` 必须显式选择 verification；宿主拒绝跨类型加载，执行时再次拒绝所有其他操作，即使 WASM 因 SDK 而含有其他导出。statement 仍明确不支持。
 
 ## 模块与内存约定
 
@@ -9,10 +26,10 @@
 | 导出 | WASM 类型 | 行为 |
 | --- | --- | --- |
 | `_initialize` | `() -> ()` | WASI reactor 初始化，宿主首先调用，纳入执行预算 |
-| `abi_version` | `() -> i32` | 必须返回 1 |
+| `abi_version` | `() -> i32` | 必须返回 2 |
 | `alloc` | `(i32 length) -> i32 pointer` | 分配输入缓冲区，长度 1..1048576，失败返回 0 |
 | `dealloc` | `(i32 pointer, i32 length) -> ()` | 释放宿主分配的输入缓冲区 |
-| 六个支付操作 | `(i32 pointer, i32 length) -> i64` | 输入 Call JSON，返回 Step JSON 的地址和长度 |
+| 七个支付操作 | `(i32 pointer, i32 length) -> i64` | 输入 Call JSON，返回 Step JSON 的地址和长度 |
 
 返回 `i64 = (uint64(pointer) << 32) | uint64(length)`，高 32 位为地址，低 32 位为字节数。所有地址为 wasm32 线性内存偏移。输出由插件持有，至少到下次操作入口调用前有效；宿主立即复制并关闭实例。SDK 管理全部指针、缓冲区和导出，作者注册普通 `func(sdk.Call) sdk.Step` 即可。
 
@@ -38,7 +55,7 @@ JSON 必须是有效 UTF-8，深度不超过 64；拒绝未知字段、大小写
 
 Request 为 `{method, url, headers, body}`，Response 为 `{status, headers, body}`，头部是 `map[string][]string`，保留重复值。响应中不注入传输错误：传输错误立即终止操作，避免插件把“没有收到应答”编造成拒绝。
 
-Result 为 `{outcome, code?, payment?, refund?, callback?}`。`completed` 必须且仅能包含该操作的输出对象；`rejected` 必须有不超过 128 字节的 code 且不能有输出对象；`unknown` 与 `error` 立即进入宿主失败分类。code 不能携带任意上游正文或调试栈。
+Result 为 `{outcome, code?, payment?, refund?, callback?, route?}`。`completed` 必须且仅能包含该操作的输出对象；`rejected` 必须有不超过 128 字节的 code 且不能有输出对象；`unknown` 与 `error` 立即进入宿主失败分类。code 不能携带任意上游正文或调试栈。
 
 ## 操作形状
 
@@ -51,14 +68,15 @@ Result 为 `{outcome, code?, payment?, refund?, callback?}`。`completed` 必须
 | `close_payment` | 同 PaymentInput | payment |
 | `refund` | `RefundInput`: order_id、refund_id、money | refund |
 | `query_refund` | 同 RefundInput | refund |
+| `route_callback` | `RouteCallbackInput`: method、headers、body；可选 raw_query、source_ip | route (`{order_id}`，不可信线索) |
 | `verify_callback` | `CallbackInput`: order_id、money（已查得的原订单预期值）、method、headers、body；可选 raw_query、source_ip | callback |
 | `fetch_statement` / `parse_statement` | 未定义 | M4，当前明确不支持 |
 
-- `PaymentOutput = {order_id, upstream_id, money, status, url?, qrcode?, paid_at?}`。status 为 pending/paid/closed/failed/unknown；url 与 qrcode 至多一个，下单 pending 时必须有一个。url 必须 HTTPS（显式测试模式例外），paid_at 若存在必须 RFC3339Nano。
+- `PaymentOutput = {order_id, upstream_id, money, status, url?, qrcode?, paid_at?, expires_at?}`。status 为 pending/paid/closed/failed/unknown；url 与 qrcode 至多一个，下单 pending 时必须有一个。url 必须 HTTPS（显式测试模式例外），paid_at 若存在必须 RFC3339Nano。
 - `RefundOutput = {order_id, refund_id, upstream_refund_id, money, status}`。status 为 pending/succeeded/failed/unknown。模拟器没有独立上游退款号，使用它的 refund_id。
 - `CallbackOutput = {event_id, order_id, upstream_id, money, status, ack}`。status 同付款状态，ack 是 Response，状态、Content-Type、正文必须与 manifest 回调规则一致。模拟器应答为 HTTP 200、text/plain、原文 `success`。
 
-所有结果的 order_id/refund_id 必须与输入完全一致，money 必须精确一致。HTTP 支付操作没有收到响应就返回 completed/rejected 都不采信。回调 method 与 raw_query 规则遵循 manifest，body 不超过 64 KiB、raw_query 不超过 16 KiB；两个模拟插件只允许 POST 且不允许 query；服务先按不可信路由信息查找候选原订单，再把预期 ID/金额传入验签，回调结果只触发主动查单。证据保留、加密、摘要、channel_id 绑定与状态机属于使用服务，不由插件提供可信状态。
+`route_callback` 的 order_id 仅须符合订单号规则（1..100 个 ASCII 字母、数字、下划线或连字符），没有输入订单快照可比较；其他结果的 order_id/refund_id 必须与输入完全一致，money 必须精确一致。HTTP 操作没有收到响应就返回 completed/rejected 都不采信。回调 method 与 raw_query 规则遵循 manifest，body 不超过 64 KiB、raw_query 不超过 16 KiB；两个模拟插件只允许 POST 且不允许 query；服务先按不可信路由信息查找候选原订单，再把预期 ID/金额传入验签，回调结果只触发主动查单。证据保留、加密、摘要、channel_id 绑定与状态机属于使用服务，不由插件提供可信状态。
 
 ## `kaivo` 导入
 
@@ -101,12 +119,26 @@ Part 为 `{data?: <Base64 bytes>, secret?: <reference name>}`，两者互斥；�
 
 ## manifest、包与回放
 
-manifest 字段以 `host.Manifest` 为准：type(payment/statement)、code(`^[a-z0-9_]{2,32}$`)、SemVer 2 version、abi_version、精确 domains、secrets(name → shared/rsa-private)、public_keys、config(name → `{type:"string",required:bool}`)、capabilities、callback、build。配置名称为 `^[a-z][a-z0-9_]{0,63}$`，密钥/公钥/非密钥配置不得重名。callback 包含 methods、allow_query、content_types、ack_status、ack_content_type、ack_body；build 包含 go_version、source_commit、source_tree_sha256。
+manifest 字段以 `host.Manifest` 为准：type(payment/verification/statement)、code(`^[a-z0-9_]{2,32}$`)、SemVer 2 version、abi_version、精确 domains、secrets(name → shared/rsa-private)、public_keys、config(name → `{type:"string",required:bool}`)、capabilities、callback、build。配置名称为 `^[a-z][a-z0-9_]{0,63}$`，密钥/公钥/非密钥配置不得重名。callback 包含 methods、allow_query、content_types、ack_status、ack_content_type、ack_body；build 包含 go_version、source_commit、source_tree_sha256。
 
 manifest 最大 64 KiB，plugin.wasm 最大 12 MiB（上传请求整体须在 payment 的 16 MiB gRPC 消息上限内）。规范 manifest 为：严格解码到 Manifest 后重新序列化并将对象键按字节排序、无额外空白；数组顺序保留。包哈希 `SHA-256(normalized_manifest || plugin.wasm)`，不含分隔符和 fixtures。包目录与 fixture 文件禁止链接；fixtures 路径必须在 fixtures/ 下、规范相对路径、无重复/穿越，至多 256 个文件、单文件 1 MiB、总计 3 MiB。
 
 Fixture 字段见 `host.Fixture`：name(operation/scenario)、source（来源说明）、operation、input、config、time（UTC RFC3339Nano）、random_seed（32 字节公开测试熵）、exchanges、expected，以及可选 test_only_resign_callback。每次操作回放使用固定 wall clock 和 SHA-256(seed||counter) 测试随机流；HTTP 替换为严格匹配录制请求的离线传输。请求的临时测试签名替换为 `TEST_SIGNATURE_REGENERATED_AT_REPLAY`；原始 JSON/其他业务字节仍精确比对。有效回调模板在内存中重新签名；fixture 不保存共享密钥/私钥。签名正确性另以真实录制和算法交叉测试验证。
 
-请求头录制值可以保留 `{{secret:引用名}}`；离线传输只在宿主内存展开预期值后匹配，不将密钥写入报告。默认 Replay 支持模拟器回调模板。任意上游可以使用 `ReplayWithEnvironment` 提供临时测试凭据和回调模板签名器；框架仍强制使用录制的配置、时间、随机与离线出口，签名器必须保留业务字节。每个声明的支付能力必有 success/rejected/timeout/signature_error/amount_mismatch；verify_callback 只要求 success/signature_error/amount_mismatch，因为它禁止发请求。fixture 中的 expected 分类必须与场景语义一致。
+请求头录制值可以保留 `{{secret:引用名}}`；离线传输只在宿主内存展开预期值后匹配，不将密钥写入报告。默认 Replay 支持模拟器回调模板。任意上游可以使用 `ReplayWithEnvironment` 提供临时测试凭据和回调模板签名器；框架仍强制使用录制的配置、时间、随机与离线出口，签名器必须保留业务字节。每个声明的 HTTP 能力（包括 verification 的两项查询）必有 success/rejected/timeout/signature_error/amount_mismatch；verify_callback 只要求 success/signature_error/amount_mismatch，route_callback 只要求 success/malformed，因为它们禁止发请求。fixture 中的 expected 分类必须与场景语义一致。
 
 回归报告包括版本、包哈希、按 path 排序的 case、fixture 原始字节 SHA-256、结果、计数与通过标记。报告使用对象键排序、无空白的规范 JSON，不包含耗时、内存或临时签名；SHA-256 对这些规范字节计算，不含末尾换行。单个失败或缺失场景使 Replay 返回错误；使用方不得继续审批。fixtures 不在包哈希里，必须和宿主生成的报告摘要一起绑定在审批材料中。
+
+## 源码构建闭包摘要
+
+构建与摘要使用同一 `GoEnv`：固定 go1.27.3、GOOS=wasip1、GOARCH=wasm、CGO_ENABLED=0，无额外 tags，清除 GOFLAGS/GOEXPERIMENT/GOWASM 等可变选项；离线运行 `go list -deps -json ./<插件主包>`。排除标准库，仅允许主模块 github.com/Kaivodev/upstream-plugins 的包，拒绝其他模块。收集这些包的 GoFiles/CgoFiles（非测试且符合目标约束的 Go 文件）与 EmbedFiles 的并集，加 go.mod、go.sum；拒绝链接和越界路径，按模块相对路径（`/` 分隔、UTF-8 字节序）排序去重。排除 host、cmd、其他插件以及当前构建不选用的文件，除非它们实际进入依赖闭包。manifest 与 fixtures 分别由包哈希和回归报告绑定。
+
+摘要为以下字节流的 SHA-256（小写 hex）。`LP(x)` 是大端 uint64 的字节长度，后接 x 的原始字节；所有标签也是 LP 字段：
+
+```text
+LP("kaivo.plugin.source-closure.v2")
+LP("GOOS=wasip1;GOARCH=wasm;CGO_ENABLED=0;tags=")
+对每个排序后的文件：LP("file") || LP(相对路径) || LP(原始内容)
+```
+
+固定域标签与长度前缀避免记录拼接歧义。源码复验仍从给定源码重建，逐字节比较 wasm 与 build 元数据；生产审批还须核对提交及审批绑定，不接受 uncommitted。

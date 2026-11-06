@@ -60,9 +60,11 @@ type Report struct {
 // TestCredentials exists only for offline replay and the explicitly test-only recorder.
 // It generates credentials in memory, never serializes or logs them.
 type TestCredentials struct {
-	Platform *rsa.PrivateKey
-	Callback *rsa.PrivateKey
-	Shared   []byte
+	Platform    *rsa.PrivateKey
+	Callback    *rsa.PrivateKey
+	Query       *rsa.PrivateKey
+	QueryShared []byte
+	Shared      []byte
 }
 
 func NewTestCredentials() (*TestCredentials, error) {
@@ -78,7 +80,15 @@ func NewTestCredentials() (*TestCredentials, error) {
 	if _, e = rand.Read(shared); e != nil {
 		return nil, e
 	}
-	return &TestCredentials{Platform: a, Callback: b, Shared: []byte(hex.EncodeToString(shared))}, nil
+	query, e := rsa.GenerateKey(rand.Reader, 2048)
+	if e != nil {
+		return nil, e
+	}
+	queryShared := make([]byte, 32)
+	if _, e = rand.Read(queryShared); e != nil {
+		return nil, e
+	}
+	return &TestCredentials{Platform: a, Callback: b, Query: query, QueryShared: []byte(hex.EncodeToString(queryShared)), Shared: []byte(hex.EncodeToString(shared))}, nil
 }
 func TestPrivatePEM(key *rsa.PrivateKey) []byte {
 	b, _ := x509.MarshalPKCS8PrivateKey(key)
@@ -118,6 +128,10 @@ func (t *TestCredentials) Services(f Fixture, transport http.RoundTripper) (Serv
 	}
 	return Services{ConfigValues: f.Config, ResolveSecret: func(_ context.Context, n string) ([]byte, error) {
 		switch n {
+		case "query_private_key":
+			return TestPrivatePEM(t.Query), nil
+		case "query_key":
+			return bytes.Clone(t.QueryShared), nil
 		case "platform_private":
 			return TestPrivatePEM(t.Platform), nil
 		case "shared":
@@ -298,7 +312,7 @@ func ReplayWithEnvironment(ctx context.Context, p Package, factory ReplayEnviron
 	if e != nil {
 		return nil, "", e
 	}
-	report := Report{Version: 1, PackageSHA256: l.hash, Passed: true, Cases: []CaseReport{}}
+	report := Report{Version: abi.Version, PackageSHA256: l.hash, Passed: true, Cases: []CaseReport{}}
 	paths := make([]string, 0, len(p.Fixtures))
 	for path := range p.Fixtures {
 		paths = append(paths, path)
@@ -336,6 +350,12 @@ func ReplayWithEnvironment(ctx context.Context, p Package, factory ReplayEnviron
 				return nil, "", err
 			}
 			services.ResolveSecret = func(_ context.Context, n string) ([]byte, error) {
+				if n == "query_key" {
+					return bytes.Clone(keys.QueryShared), nil
+				}
+				if n == "query_private_key" {
+					return TestPrivatePEM(keys.Query), nil
+				}
 				switch m.Secrets[n] {
 				case "shared":
 					return bytes.Clone(keys.Shared), nil
@@ -393,6 +413,8 @@ func ReplayWithEnvironment(ctx context.Context, p Package, factory ReplayEnviron
 		scenarios := []string{"success", "rejected", "timeout", "signature_error", "amount_mismatch"}
 		if op == abi.VerifyCallback {
 			scenarios = []string{"success", "signature_error", "amount_mismatch"}
+		} else if op == abi.RouteCallback {
+			scenarios = []string{"success", "malformed"}
 		}
 		for _, scenario := range scenarios {
 			if !coverage[op][scenario] {
@@ -435,6 +457,9 @@ func (r recordedEnvironment) Now() time.Time               { return r.now }
 func (r recordedEnvironment) Random() io.Reader            { return r.random }
 func (r recordedEnvironment) Transport() http.RoundTripper { return r.transport }
 func validFixtureExpectation(op abi.Operation, scenario string, e Execution) bool {
+	if op == abi.RouteCallback {
+		return scenario == "success" && e.Category == Completed && e.Result != nil || scenario == "malformed" && e.Category == NotSent && e.Requests == 0
+	}
 	switch scenario {
 	case "success":
 		return e.Category == Completed && e.Result != nil

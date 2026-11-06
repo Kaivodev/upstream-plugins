@@ -1,0 +1,41 @@
+{
+  "name": "query_refund/timeout",
+  "source": "constructed_transport_timeout_from_recorded_protocol_using_independent_query_credentials",
+  "operation": "query_refund",
+  "input": {
+    "order_id": "test_20261106113327170776000_query_refund_timeout",
+    "refund_id": "test_20261106113327170776000_query_refund_timeout_refund",
+    "money": {
+      "amount": "12345",
+      "currency": "CNY"
+    }
+  },
+  "config": {
+    "account_id": "md5-demo",
+    "gateway": "http://127.0.0.1:9080"
+  },
+  "time": "2026-11-06T11:33:27.325698Z",
+  "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "http://127.0.0.1:9080/api/md5-demo/refund-query",
+        "headers": {
+          "Content-Type": [
+            "application/x-www-form-urlencoded"
+          ]
+        },
+        "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZvcGVyYXRpb249cmVmdW5kLXF1ZXJ5Jm9yZGVyX2lkPXRlc3RfMjAyNjExMDYxMTMzMjcxNzA3NzYwMDBfcXVlcnlfcmVmdW5kX3RpbWVvdXQmcmVmdW5kX2lkPXRlc3RfMjAyNjExMDYxMTMzMjcxNzA3NzYwMDBfcXVlcnlfcmVmdW5kX3RpbWVvdXRfcmVmdW5kJnNpZ249VEVTVF9TSUdOQVRVUkVfUkVHRU5FUkFURURfQVRfUkVQTEFZ"
+      },
+      "error": "timeout"
+    }
+  ],
+  "expected": {
+    "category": "unknown",
+    "error_code": "transport_error",
+    "requests": 1,
+    "responses": 0,
+    "steps": 1
+  }
+}

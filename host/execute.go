@@ -66,6 +66,13 @@ func inputIdentity(op abi.Operation, b []byte) (order, refund string, money abi.
 		if err == nil && !idRE.MatchString(refund) {
 			err = errors.New("invalid refund ID")
 		}
+	case abi.RouteCallback:
+		var v abi.RouteCallbackInput
+		err = abi.Decode(b, &v)
+		if err == nil && (v.Method == "" || len(v.Body) > 64<<10 || len(v.RawQuery) > 16<<10) {
+			err = errors.New("invalid callback request")
+		}
+		return
 	case abi.VerifyCallback:
 		var v abi.CallbackInput
 		err = abi.Decode(b, &v)
@@ -90,7 +97,7 @@ func inputIdentity(op abi.Operation, b []byte) (order, refund string, money abi.
 }
 func (h *Host) Execute(ctx context.Context, l *Loaded, op abi.Operation, input []byte, env Environment) (out Execution) {
 	out.Category = NotSent
-	if l == nil || env == nil || !slices.Contains(l.manifest.Capabilities, op) || !op.Payment() {
+	if l == nil || env == nil || l.manifest.Type != h.options.PluginType || !slices.Contains(l.manifest.Capabilities, op) || !op.Payment() || (l.manifest.Type == "verification" && op != abi.QueryPayment && op != abi.QueryRefund) {
 		out.ErrorCode = "unsupported_operation"
 		return
 	}
@@ -125,12 +132,14 @@ func (h *Host) Execute(ctx context.Context, l *Loaded, op abi.Operation, input [
 		}
 		return out
 	}
-	for n := range l.manifest.Secrets {
-		v, e := env.Secret(ctx, n)
-		if e != nil || len(v) < 16 || len(v) > 16<<10 {
-			return fail("credential_unavailable")
+	if op != abi.RouteCallback {
+		for n := range l.manifest.Secrets {
+			v, e := env.Secret(ctx, n)
+			if e != nil || len(v) < 16 || len(v) > 16<<10 {
+				return fail("credential_unavailable")
+			}
+			s.secrets[n] = bytes.Clone(v)
 		}
-		s.secrets[n] = bytes.Clone(v)
 	}
 	for n, f := range l.manifest.Config {
 		v, e := env.Config(ctx, n)
@@ -149,9 +158,15 @@ func (h *Host) Execute(ctx context.Context, l *Loaded, op abi.Operation, input [
 	if s.jsonLeak(configJSON) || s.jsonLeak(input) {
 		return fail("secret_leak")
 	}
-	if op == abi.VerifyCallback {
-		var v abi.CallbackInput
-		_ = abi.Decode(input, &v)
+	if op == abi.VerifyCallback || op == abi.RouteCallback {
+		var v abi.RouteCallbackInput
+		if op == abi.VerifyCallback {
+			var verified abi.CallbackInput
+			_ = abi.Decode(input, &verified)
+			v = abi.RouteCallbackInput{Method: verified.Method, RawQuery: verified.RawQuery, Headers: verified.Headers, Body: verified.Body, SourceIP: verified.SourceIP}
+		} else {
+			_ = abi.Decode(input, &v)
+		}
 		if l.manifest.Callback == nil || !slices.Contains(l.manifest.Callback.Methods, v.Method) || !l.manifest.Callback.AllowQuery && len(v.RawQuery) > 0 {
 			return fail("callback_request")
 		}
@@ -160,7 +175,14 @@ func (h *Host) Execute(ctx context.Context, l *Loaded, op abi.Operation, input [
 			return fail("callback_headers")
 		}
 		v.Headers = headers
-		input, _ = json.Marshal(v)
+		if op == abi.RouteCallback {
+			input, _ = json.Marshal(v)
+		} else {
+			var verified abi.CallbackInput
+			_ = abi.Decode(input, &verified)
+			verified.Headers = headers
+			input, _ = json.Marshal(verified)
+		}
 		ct, _, e := mime.ParseMediaType(headers.Get("Content-Type"))
 		if e != nil || l.manifest.Callback == nil || !slices.Contains(l.manifest.Callback.ContentTypes, ct) {
 			return fail("callback_content_type")
@@ -175,7 +197,7 @@ func (h *Host) Execute(ctx context.Context, l *Loaded, op abi.Operation, input [
 			return fail(code)
 		}
 		if next.Request != nil {
-			if op == abi.VerifyCallback {
+			if op == abi.VerifyCallback || op == abi.RouteCallback {
 				return fail("callback_network_forbidden")
 			}
 			if step == MaxSteps {
@@ -246,7 +268,7 @@ func (h *Host) Execute(ctx context.Context, l *Loaded, op abi.Operation, input [
 			if out.Responses == 0 {
 				return fail("unsubstantiated_rejection")
 			}
-			if r.Code == "" || r.Payment != nil || r.Refund != nil || r.Callback != nil {
+			if r.Code == "" || r.Payment != nil || r.Refund != nil || r.Callback != nil || r.Route != nil {
 				return fail("output_structure")
 			}
 			out.Category = Rejected
@@ -256,10 +278,10 @@ func (h *Host) Execute(ctx context.Context, l *Loaded, op abi.Operation, input [
 		if r.Outcome != "completed" {
 			return fail("output_outcome")
 		}
-		if code := h.validateResult(l.manifest, op, r, order, refund, money); code != "" {
+		if code := h.validateResult(l.manifest, op, r, order, refund, money, env.Now()); code != "" {
 			return fail(code)
 		}
-		if op != abi.VerifyCallback && out.Responses == 0 {
+		if op != abi.VerifyCallback && op != abi.RouteCallback && out.Responses == 0 {
 			return fail("unsubstantiated_result")
 		}
 		out.Category = Completed
@@ -268,8 +290,11 @@ func (h *Host) Execute(ctx context.Context, l *Loaded, op abi.Operation, input [
 	}
 	return fail("step_limit")
 }
-func (h *Host) validateResult(m Manifest, op abi.Operation, r *abi.Result, order, refund string, money abi.Money) string {
+func (h *Host) validateResult(m Manifest, op abi.Operation, r *abi.Result, order, refund string, money abi.Money, now time.Time) string {
 	count := 0
+	if r.Route != nil {
+		count++
+	}
 	if r.Payment != nil {
 		count++
 	}
@@ -283,6 +308,10 @@ func (h *Host) validateResult(m Manifest, op abi.Operation, r *abi.Result, order
 		return "output_structure"
 	}
 	switch op {
+	case abi.RouteCallback:
+		if r.Route == nil || !idRE.MatchString(r.Route.OrderID) {
+			return "output_identity"
+		}
 	case abi.CreatePayment, abi.QueryPayment, abi.ClosePayment:
 		p := r.Payment
 		if p == nil || p.OrderID != order || p.UpstreamID == "" || !slices.Contains([]string{"pending", "paid", "closed", "failed", "unknown"}, p.Status) {
@@ -301,6 +330,12 @@ func (h *Host) validateResult(m Manifest, op abi.Operation, r *abi.Result, order
 			u, e := url.Parse(p.URL)
 			if e != nil || u.Hostname() == "" || u.User != nil || u.Fragment != "" || (u.Scheme != "https" && !(h.options.TestOnlyAllowHTTP && u.Scheme == "http")) {
 				return "output_instruction"
+			}
+		}
+		if p.ExpiresAt != "" {
+			expires, e := time.Parse(time.RFC3339Nano, p.ExpiresAt)
+			if e != nil || !strings.HasSuffix(p.ExpiresAt, "Z") || op != abi.CreatePayment || p.Status != "pending" || p.URL == "" && p.QRCode == "" || !expires.After(now) || expires.After(now.Add(24*time.Hour)) {
+				return "output_time"
 			}
 		}
 		if p.PaidAt != "" {

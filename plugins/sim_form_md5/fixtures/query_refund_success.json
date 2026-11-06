@@ -3,8 +3,8 @@
   "source": "recorded_upstream_sim_loopback",
   "operation": "query_refund",
   "input": {
-    "order_id": "test_query_refund_success",
-    "refund_id": "test_query_refund_success_refund",
+    "order_id": "test_20261106113320971633000_query_refund_success",
+    "refund_id": "test_20261106113320971633000_query_refund_success_refund",
     "money": {
       "amount": "12345",
       "currency": "CNY"
@@ -14,7 +14,7 @@
     "account_id": "md5-demo",
     "gateway": "http://127.0.0.1:9080"
   },
-  "time": "2026-11-06T06:07:31.221152Z",
+  "time": "2026-11-06T11:33:23.376194Z",
   "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
   "exchanges": [
     {
@@ -26,7 +26,7 @@
             "application/x-www-form-urlencoded"
           ]
         },
-        "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZvcGVyYXRpb249cmVmdW5kLXF1ZXJ5Jm9yZGVyX2lkPXRlc3RfcXVlcnlfcmVmdW5kX3N1Y2Nlc3MmcmVmdW5kX2lkPXRlc3RfcXVlcnlfcmVmdW5kX3N1Y2Nlc3NfcmVmdW5kJnNpZ249VEVTVF9TSUdOQVRVUkVfUkVHRU5FUkFURURfQVRfUkVQTEFZ"
+        "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZvcGVyYXRpb249cmVmdW5kLXF1ZXJ5Jm9yZGVyX2lkPXRlc3RfMjAyNjExMDYxMTMzMjA5NzE2MzMwMDBfcXVlcnlfcmVmdW5kX3N1Y2Nlc3MmcmVmdW5kX2lkPXRlc3RfMjAyNjExMDYxMTMzMjA5NzE2MzMwMDBfcXVlcnlfcmVmdW5kX3N1Y2Nlc3NfcmVmdW5kJnNpZ249VEVTVF9TSUdOQVRVUkVfUkVHRU5FUkFURURfQVRfUkVQTEFZ"
       },
       "response": {
         "status": 200,
@@ -35,7 +35,7 @@
             "application/json; charset=utf-8"
           ]
         },
-        "body": "eyJyZXN1bHQiOiJhY2NlcHRlZCIsImNvZGUiOiJyZWZ1bmRfc3VjY2VzcyIsInJlZnVuZCI6eyJhY2NvdW50X2lkIjoibWQ1LWRlbW8iLCJvcmRlcl9pZCI6InRlc3RfcXVlcnlfcmVmdW5kX3N1Y2Nlc3MiLCJyZWZ1bmRfaWQiOiJ0ZXN0X3F1ZXJ5X3JlZnVuZF9zdWNjZXNzX3JlZnVuZCIsImFtb3VudCI6MTIzNDUsImN1cnJlbmN5IjoiQ05ZIiwic3RhdHVzIjoic3VjY2VzcyJ9fQo="
+        "body": "eyJyZXN1bHQiOiJhY2NlcHRlZCIsImNvZGUiOiJyZWZ1bmRfc3VjY2VzcyIsInJlZnVuZCI6eyJhY2NvdW50X2lkIjoibWQ1LWRlbW8iLCJvcmRlcl9pZCI6InRlc3RfMjAyNjExMDYxMTMzMjA5NzE2MzMwMDBfcXVlcnlfcmVmdW5kX3N1Y2Nlc3MiLCJyZWZ1bmRfaWQiOiJ0ZXN0XzIwMjYxMTA2MTEzMzIwOTcxNjMzMDAwX3F1ZXJ5X3JlZnVuZF9zdWNjZXNzX3JlZnVuZCIsImFtb3VudCI6MTIzNDUsImN1cnJlbmN5IjoiQ05ZIiwic3RhdHVzIjoic3VjY2VzcyJ9fQo="
       }
     }
   ],
@@ -44,9 +44,9 @@
     "result": {
       "outcome": "completed",
       "refund": {
-        "order_id": "test_query_refund_success",
-        "refund_id": "test_query_refund_success_refund",
-        "upstream_refund_id": "test_query_refund_success_refund",
+        "order_id": "test_20261106113320971633000_query_refund_success",
+        "refund_id": "test_20261106113320971633000_query_refund_success_refund",
+        "upstream_refund_id": "test_20261106113320971633000_query_refund_success_refund",
         "money": {
           "amount": "12345",
           "currency": "CNY"

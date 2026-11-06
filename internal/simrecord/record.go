@@ -16,6 +16,7 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
@@ -28,6 +29,8 @@ type credentials struct {
 	RequestPrivate string `json:"generated_platform_private_key_pem"`
 	CallbackPublic string `json:"callback_public_key_pem"`
 	Shared         string `json:"shared_secret"`
+	QueryPrivate   string `json:"generated_query_private_key_pem"`
+	QueryShared    string `json:"query_shared_secret"`
 }
 type recorder struct {
 	base      http.RoundTripper
@@ -97,7 +100,7 @@ func (r *recorder) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 // Record requires a test-environment simulator exposing its authenticated control API.
-func Record(ctx context.Context, p host.Package, base, token, out string) error {
+func Record(ctx context.Context, p, setup host.Package, base, token, out string) error {
 	u, e := url.Parse(base)
 	if e != nil || u.Scheme != "http" || net.ParseIP(u.Hostname()) == nil || !net.ParseIP(u.Hostname()).IsLoopback() || u.User != nil || u.RawQuery != "" || u.Path != "" || u.Fragment != "" {
 		return errors.New("record requires explicit loopback HTTP simulator origin")
@@ -144,9 +147,9 @@ func Record(ctx context.Context, p host.Package, base, token, out string) error 
 	}
 	account := "md5-demo"
 	style := "form-md5"
-	if m.Code == "sim_json_rsa" {
+	if strings.TrimSuffix(m.Code, "_verify") == "sim_json_rsa" {
 		account, style = "rsa-demo", "json-rsa"
-	} else if m.Code != "sim_form_md5" {
+	} else if strings.TrimSuffix(m.Code, "_verify") != "sim_form_md5" {
 		return errors.New("recorder recipes support only simulator plugins")
 	}
 	cred, ok := creds[account]
@@ -168,7 +171,7 @@ func Record(ctx context.Context, p host.Package, base, token, out string) error 
 			return errors.New("invalid simulator key")
 		}
 	}
-	h, e := host.New(ctx, host.Options{PluginType: "payment", TestOnlyAllowHTTP: true, TestOnlyAllowUncommitted: true})
+	h, e := host.New(ctx, host.Options{PluginType: m.Type, TestOnlyAllowHTTP: true, TestOnlyAllowUncommitted: true, RequestTimeout: 2 * time.Second})
 	if e != nil {
 		return e
 	}
@@ -176,6 +179,22 @@ func Record(ctx context.Context, p host.Package, base, token, out string) error 
 	l, e := h.Load(ctx, p)
 	if e != nil {
 		return e
+	}
+	setupHost, setupLoaded := h, l
+	if m.Type == "verification" {
+		sm, _, err := setup.Manifest()
+		if err != nil || sm.Type != "payment" || sm.Code != strings.TrimSuffix(m.Code, "_verify") {
+			return errors.New("verification recording requires matching --setup-dir payment package")
+		}
+		setupHost, e = host.New(ctx, host.Options{PluginType: "payment", TestOnlyAllowHTTP: true, TestOnlyAllowUncommitted: true})
+		if e != nil {
+			return e
+		}
+		defer setupHost.Close(ctx)
+		setupLoaded, e = setupHost.Load(ctx, setup)
+		if e != nil {
+			return e
+		}
 	}
 	callbacks := make(chan abi.CallbackInput, 16)
 	listener, e := net.Listen("tcp", "127.0.0.1:0")
@@ -208,18 +227,27 @@ func Record(ctx context.Context, p host.Package, base, token, out string) error 
 				return []byte(cred.RequestPrivate), nil
 			case "shared":
 				return []byte(cred.Shared), nil
+			case "query_private_key":
+				return []byte(cred.QueryPrivate), nil
+			case "query_key":
+				return []byte(cred.QueryShared), nil
 			}
 			return nil, errors.New("unknown credential")
 		}, ResolvePublicKey: func(context.Context, string) (*rsa.PublicKey, error) { return pub, nil }, Clock: func() time.Time { return clock }, RandomSource: host.SeedReader(f.RandomSeed), HTTP: record}
+		if !slices.Contains(m.Capabilities, op) {
+			return setupHost.Execute(ctx, setupLoaded, op, input, env)
+		}
 		return h.Execute(ctx, l, op, input, env)
 	}
 	encode := func(v any) []byte { b, _ := json.Marshal(v); return b }
 	recordID := time.Now().UTC().Format("20060102150405.000000000")
 	recordID = strings.ReplaceAll(recordID, ".", "")
-	for _, op := range abi.PaymentOperations {
+	for _, op := range m.Capabilities {
 		scenarios := []string{"success", "rejected", "timeout", "signature_error", "amount_mismatch"}
 		if op == abi.VerifyCallback {
 			scenarios = []string{"success", "signature_error", "amount_mismatch"}
+		} else if op == abi.RouteCallback {
+			scenarios = []string{"success", "malformed"}
 		}
 		for _, scenario := range scenarios {
 			id := "test_" + recordID + "_" + string(op) + "_" + scenario
@@ -245,7 +273,7 @@ func Record(ctx context.Context, p host.Package, base, token, out string) error 
 				scenarioConfig["create_fault"] = "timeout"
 				scenarioConfig["fault_delay_ms"] = 3000
 			}
-			if op == abi.VerifyCallback {
+			if op == abi.VerifyCallback || op == abi.RouteCallback {
 				scenarioConfig["callback_disabled"] = false
 				if scenario == "signature_error" {
 					scenarioConfig["callback_invalid_signature"] = true
@@ -263,7 +291,7 @@ func Record(ctx context.Context, p host.Package, base, token, out string) error 
 				if result.Category != host.Completed {
 					return fmt.Errorf("record setup create failed: %s", result.ErrorCode)
 				}
-				if op == abi.Refund || op == abi.QueryRefund || op == abi.VerifyCallback {
+				if op == abi.Refund || op == abi.QueryRefund || op == abi.VerifyCallback || op == abi.RouteCallback {
 					link := result.Result.Payment.URL
 					r, e := http.NewRequestWithContext(ctx, "POST", link, nil)
 					if e != nil {
@@ -295,18 +323,33 @@ func Record(ctx context.Context, p host.Package, base, token, out string) error 
 				input = abi.PaymentInput{OrderID: id, Money: money}
 			case abi.Refund, abi.QueryRefund:
 				input = abi.RefundInput{OrderID: id, RefundID: id + "_refund", Money: money}
-			case abi.VerifyCallback:
+			case abi.VerifyCallback, abi.RouteCallback:
 				select {
 				case v := <-callbacks:
 					v.OrderID, v.Money = id, money
 					input = v
+					if op == abi.RouteCallback {
+						if style == "json-rsa" {
+							http.Header(v.Headers).Set("X-Signature", host.TestSignature)
+						} else {
+							values, _ := url.ParseQuery(string(v.Body))
+							values.Set("sign", host.TestSignature)
+							v.Body = []byte(values.Encode())
+						}
+						route := abi.RouteCallbackInput{Method: v.Method, Headers: v.Headers, Body: v.Body}
+						if scenario == "malformed" {
+							route.Body = []byte("malformed%")
+							f.Source = "recorded_callback_with_constructed_malformed_body"
+						}
+						input = route
+					}
 				case <-time.After(4 * time.Second):
 					return errors.New("simulator callback not received")
 				}
 			}
 			f.Input = encode(input)
 			r := &recorder{base: tr}
-			if op != abi.VerifyCallback {
+			if op != abi.VerifyCallback && op != abi.RouteCallback {
 				if scenario == "signature_error" {
 					r.fault = "signature_error"
 				}
@@ -340,12 +383,15 @@ func Record(ctx context.Context, p host.Package, base, token, out string) error 
 			if e = validateExpectation(scenario, op, f.Expected); e != nil {
 				return e
 			}
+			if m.Type == "verification" {
+				f.Source += "_using_independent_query_credentials"
+			}
 			b, e := json.MarshalIndent(f, "", "  ")
 			if e != nil {
 				return e
 			}
 			b = append(b, '\n')
-			if bytes.Contains(b, []byte(cred.Shared)) && cred.Shared != "" || bytes.Contains(b, []byte(cred.RequestPrivate)) && cred.RequestPrivate != "" {
+			if credentialLeak(b, Credentials{Secrets: map[string]string{"shared": cred.Shared, "private": cred.RequestPrivate, "query_private": cred.QueryPrivate, "query_shared": cred.QueryShared}}) {
 				return errors.New("recording contains credential")
 			}
 			if e = os.WriteFile(filepath.Join(out, string(op)+"_"+scenario+".json"), b, 0644); e != nil {
@@ -357,6 +403,9 @@ func Record(ctx context.Context, p host.Package, base, token, out string) error 
 }
 func validateExpectation(scenario string, op abi.Operation, r host.Execution) error {
 	want := host.Completed
+	if op == abi.RouteCallback && scenario == "malformed" {
+		want = host.NotSent
+	}
 	if scenario == "timeout" || scenario == "amount_mismatch" {
 		want = host.Unknown
 	}

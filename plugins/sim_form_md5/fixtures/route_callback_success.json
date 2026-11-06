@@ -1,0 +1,33 @@
+{
+  "name": "route_callback/success",
+  "source": "recorded_upstream_sim_loopback",
+  "operation": "route_callback",
+  "input": {
+    "method": "POST",
+    "headers": {
+      "Content-Type": [
+        "application/x-www-form-urlencoded"
+      ]
+    },
+    "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZhbW91bnQ9MTIzNDUmY3VycmVuY3k9Q05ZJmV2ZW50X2lkPXNpbV80Nzk2ODA3M2I3NzAzODc4MmQzNzNjYzE2MjM0MTUwMV9wYWlkJm9yZGVyX2lkPXRlc3RfMjAyNjExMDYxMTMzMjA5NzE2MzMwMDBfcm91dGVfY2FsbGJhY2tfc3VjY2VzcyZwYWlkX2F0PTIwMjYtMTEtMDZUMTElM0EzMyUzQTIzLjUyNDg5WiZzZXF1ZW5jZT0yJnNpZ249VEVTVF9TSUdOQVRVUkVfUkVHRU5FUkFURURfQVRfUkVQTEFZJnN0YXR1cz1wYWlkJnVwc3RyZWFtX2lkPXNpbV80Nzk2ODA3M2I3NzAzODc4MmQzNzNjYzE2MjM0MTUwMQ=="
+  },
+  "config": {
+    "account_id": "md5-demo",
+    "gateway": "http://127.0.0.1:9080"
+  },
+  "time": "2026-11-06T11:33:23.513606Z",
+  "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
+  "exchanges": [],
+  "expected": {
+    "category": "completed",
+    "result": {
+      "route": {
+        "order_id": "test_20261106113320971633000_route_callback_success"
+      },
+      "outcome": "completed"
+    },
+    "requests": 0,
+    "responses": 0,
+    "steps": 1
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "name": "route_callback/success",
+  "source": "recorded_upstream_sim_loopback",
+  "operation": "route_callback",
+  "input": {
+    "method": "POST",
+    "headers": {
+      "Content-Type": [
+        "application/json"
+      ],
+      "X-Signature": [
+        "TEST_SIGNATURE_REGENERATED_AT_REPLAY"
+      ]
+    },
+    "body": "eyJldmVudF9pZCI6InNpbV82ODU2YmIwNTIyZDAxNTQwOWI0Yjc1ZmExZDJlMmE3YV9wYWlkIiwiYWNjb3VudF9pZCI6InJzYS1kZW1vIiwib3JkZXJfaWQiOiJ0ZXN0XzIwMjYxMTA2MTEzMzE3NDQ1NDUyMDAwX3JvdXRlX2NhbGxiYWNrX3N1Y2Nlc3MiLCJ1cHN0cmVhbV9pZCI6InNpbV82ODU2YmIwNTIyZDAxNTQwOWI0Yjc1ZmExZDJlMmE3YSIsImFtb3VudCI6MTIzNDUsImN1cnJlbmN5IjoiQ05ZIiwic3RhdHVzIjoicGFpZCIsInNlcXVlbmNlIjoyLCJwYWlkX2F0IjoiMjAyNi0xMS0wNlQxMTozMzoyMC4wNTg5NTZaIn0="
+  },
+  "config": {
+    "account_id": "rsa-demo",
+    "gateway": "http://127.0.0.1:9080"
+  },
+  "time": "2026-11-06T11:33:20.046215Z",
+  "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
+  "exchanges": [],
+  "expected": {
+    "category": "completed",
+    "result": {
+      "route": {
+        "order_id": "test_20261106113317445452000_route_callback_success"
+      },
+      "outcome": "completed"
+    },
+    "requests": 0,
+    "responses": 0,
+    "steps": 1
+  }
+}

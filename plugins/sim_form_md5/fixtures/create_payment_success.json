@@ -3,20 +3,20 @@
   "source": "recorded_upstream_sim_loopback",
   "operation": "create_payment",
   "input": {
-    "order_id": "test_create_payment_success",
+    "order_id": "test_20261106113320971633000_create_payment_success",
     "money": {
       "amount": "12345",
       "currency": "CNY"
     },
     "method": "alipay",
     "instruction": "url",
-    "callback_url": "http://127.0.0.1:53393/callback"
+    "callback_url": "http://127.0.0.1:51070/callback"
   },
   "config": {
     "account_id": "md5-demo",
     "gateway": "http://127.0.0.1:9080"
   },
-  "time": "2026-11-06T06:07:28.781775Z",
+  "time": "2026-11-06T11:33:20.97164Z",
   "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
   "exchanges": [
     {
@@ -28,7 +28,7 @@
             "application/x-www-form-urlencoded"
           ]
         },
-        "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZhbW91bnQ9MTIzNDUmY2FsbGJhY2tfdXJsPWh0dHAlM0ElMkYlMkYxMjcuMC4wLjElM0E1MzM5MyUyRmNhbGxiYWNrJmN1cnJlbmN5PUNOWSZpbnN0cnVjdGlvbj11cmwmbWV0aG9kPWFsaXBheSZvcGVyYXRpb249Y3JlYXRlJm9yZGVyX2lkPXRlc3RfY3JlYXRlX3BheW1lbnRfc3VjY2VzcyZzaWduPVRFU1RfU0lHTkFUVVJFX1JFR0VORVJBVEVEX0FUX1JFUExBWQ=="
+        "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZhbW91bnQ9MTIzNDUmY2FsbGJhY2tfdXJsPWh0dHAlM0ElMkYlMkYxMjcuMC4wLjElM0E1MTA3MCUyRmNhbGxiYWNrJmN1cnJlbmN5PUNOWSZpbnN0cnVjdGlvbj11cmwmbWV0aG9kPWFsaXBheSZvcGVyYXRpb249Y3JlYXRlJm9yZGVyX2lkPXRlc3RfMjAyNjExMDYxMTMzMjA5NzE2MzMwMDBfY3JlYXRlX3BheW1lbnRfc3VjY2VzcyZzaWduPVRFU1RfU0lHTkFUVVJFX1JFR0VORVJBVEVEX0FUX1JFUExBWQ=="
       },
       "response": {
         "status": 200,
@@ -37,7 +37,7 @@
             "application/json; charset=utf-8"
           ]
         },
-        "body": "eyJyZXN1bHQiOiJhY2NlcHRlZCIsImNvZGUiOiJvayIsIm9yZGVyIjp7ImFjY291bnRfaWQiOiJtZDUtZGVtbyIsIm9yZGVyX2lkIjoidGVzdF9jcmVhdGVfcGF5bWVudF9zdWNjZXNzIiwidXBzdHJlYW1faWQiOiJzaW1fMzZjYWEyODdmMDgyOGQ2MjIyYTBkMTYxNmI0ZDZjNWIiLCJhbW91bnQiOjEyMzQ1LCJjdXJyZW5jeSI6IkNOWSIsIm1ldGhvZCI6ImFsaXBheSIsInN0YXR1cyI6InBlbmRpbmciLCJ1cmwiOiJodHRwOi8vMTI3LjAuMC4xOjkwODAvY2FzaGllci8zNmNhYTI4N2YwODI4ZDYyMjJhMGQxNjE2YjRkNmM1YiJ9fQo="
+        "body": "eyJyZXN1bHQiOiJhY2NlcHRlZCIsImNvZGUiOiJvayIsIm9yZGVyIjp7ImFjY291bnRfaWQiOiJtZDUtZGVtbyIsIm9yZGVyX2lkIjoidGVzdF8yMDI2MTEwNjExMzMyMDk3MTYzMzAwMF9jcmVhdGVfcGF5bWVudF9zdWNjZXNzIiwidXBzdHJlYW1faWQiOiJzaW1fMTQ3OTExM2NjNzFmZDFmNTMwOGVmZTQ1NjEzMjY0MzEiLCJhbW91bnQiOjEyMzQ1LCJjdXJyZW5jeSI6IkNOWSIsIm1ldGhvZCI6ImFsaXBheSIsInN0YXR1cyI6InBlbmRpbmciLCJ1cmwiOiJodHRwOi8vMTI3LjAuMC4xOjkwODAvY2FzaGllci8xNDc5MTEzY2M3MWZkMWY1MzA4ZWZlNDU2MTMyNjQzMSIsImV4cGlyZV90aW1lIjoiMjAyNi0xMS0wNlQxMTo0ODoyMC45ODA3MDVaIn19Cg=="
       }
     }
   ],
@@ -46,14 +46,15 @@
     "result": {
       "outcome": "completed",
       "payment": {
-        "order_id": "test_create_payment_success",
-        "upstream_id": "sim_36caa287f0828d6222a0d1616b4d6c5b",
+        "order_id": "test_20261106113320971633000_create_payment_success",
+        "upstream_id": "sim_1479113cc71fd1f5308efe4561326431",
         "money": {
           "amount": "12345",
           "currency": "CNY"
         },
         "status": "pending",
-        "url": "http://127.0.0.1:9080/cashier/36caa287f0828d6222a0d1616b4d6c5b"
+        "url": "http://127.0.0.1:9080/cashier/1479113cc71fd1f5308efe4561326431",
+        "expires_at": "2026-11-06T11:48:20.980705Z"
       }
     },
     "requests": 1,

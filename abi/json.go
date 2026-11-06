@@ -108,7 +108,7 @@ func EqualMoney(a, b Money) bool {
 	return e == nil && f == nil && a.Currency == b.Currency && x.Cmp(y) == 0
 }
 
-// encoding/json normally accepts case-insensitive field aliases; ABI v1 does not.
+// encoding/json normally accepts case-insensitive field aliases; ABI v2 does not.
 func exactFields(data []byte, typ reflect.Type) error {
 	if typ == nil {
 		return errors.New("nil JSON target")

@@ -3,7 +3,7 @@
   "source": "recorded_upstream_sim_loopback",
   "operation": "verify_callback",
   "input": {
-    "order_id": "test_verify_callback_success",
+    "order_id": "test_20261106113320971633000_verify_callback_success",
     "money": {
       "amount": "12345",
       "currency": "CNY"
@@ -14,13 +14,13 @@
         "application/x-www-form-urlencoded"
       ]
     },
-    "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZhbW91bnQ9MTIzNDUmY3VycmVuY3k9Q05ZJmV2ZW50X2lkPXNpbV9hZTUwY2M0NzYxYWU4YmVjM2M5NjNiMDgyNDkyYjNhOF9wYWlkJm9yZGVyX2lkPXRlc3RfdmVyaWZ5X2NhbGxiYWNrX3N1Y2Nlc3MmcGFpZF9hdD0yMDI2LTExLTA2VDA2JTNBMDclM0EzMS4zOTE0NjVaJnNlcXVlbmNlPTImc2lnbj1URVNUX1NJR05BVFVSRV9SRUdFTkVSQVRFRF9BVF9SRVBMQVkmc3RhdHVzPXBhaWQmdXBzdHJlYW1faWQ9c2ltX2FlNTBjYzQ3NjFhZThiZWMzYzk2M2IwODI0OTJiM2E4"
+    "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZhbW91bnQ9MTIzNDUmY3VycmVuY3k9Q05ZJmV2ZW50X2lkPXNpbV84ZjkxNTFhYmYxZjRhOGMwYzc0YTIzZDU5NzdlMGUzZF9wYWlkJm9yZGVyX2lkPXRlc3RfMjAyNjExMDYxMTMzMjA5NzE2MzMwMDBfdmVyaWZ5X2NhbGxiYWNrX3N1Y2Nlc3MmcGFpZF9hdD0yMDI2LTExLTA2VDExJTNBMzMlM0EyMy41NTc2OFomc2VxdWVuY2U9MiZzaWduPVRFU1RfU0lHTkFUVVJFX1JFR0VORVJBVEVEX0FUX1JFUExBWSZzdGF0dXM9cGFpZCZ1cHN0cmVhbV9pZD1zaW1fOGY5MTUxYWJmMWY0YThjMGM3NGEyM2Q1OTc3ZTBlM2Q="
   },
   "config": {
     "account_id": "md5-demo",
     "gateway": "http://127.0.0.1:9080"
   },
-  "time": "2026-11-06T06:07:31.378467Z",
+  "time": "2026-11-06T11:33:23.546457Z",
   "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
   "test_only_resign_callback": true,
   "exchanges": [],
@@ -29,9 +29,9 @@
     "result": {
       "outcome": "completed",
       "callback": {
-        "event_id": "sim_ae50cc4761ae8bec3c963b082492b3a8_paid",
-        "order_id": "test_verify_callback_success",
-        "upstream_id": "sim_ae50cc4761ae8bec3c963b082492b3a8",
+        "event_id": "sim_8f9151abf1f4a8c0c74a23d5977e0e3d_paid",
+        "order_id": "test_20261106113320971633000_verify_callback_success",
+        "upstream_id": "sim_8f9151abf1f4a8c0c74a23d5977e0e3d",
         "money": {
           "amount": "12345",
           "currency": "CNY"

@@ -55,7 +55,7 @@ type Loaded struct {
 
 func (l *Loaded) Hash() string { return l.hash }
 func New(ctx context.Context, o Options) (*Host, error) {
-	if o.PluginType != "payment" && o.PluginType != "statement" {
+	if o.PluginType != "payment" && o.PluginType != "verification" && o.PluginType != "statement" {
 		return nil, errors.New("explicit plugin type required")
 	}
 	if o.RequestTimeout == 0 {
@@ -269,6 +269,9 @@ func (h *Host) hostFunction(ctx context.Context, m api.Module, name string, p, n
 		if abi.Decode(raw, v) != nil {
 			s.fail("host_json")
 		}
+	}
+	if ctx.Value(operationKey{}) == abi.RouteCallback && (name == "sign" || name == "verify") {
+		s.fail("route_crypto_forbidden")
 	}
 	var v any
 	var err error

@@ -26,7 +26,7 @@ jobs:
           echo "$pinned_root/bin" >> "$GITHUB_PATH"
       - run: test -z "$(gofmt -l .)"
       - name: Check, build, and replay all plugins
-        run: make check build plugins-replay
+        run: make check build plugins-verify
       - name: Check module metadata stays unchanged
         run: git diff --exit-code -- go.mod go.sum
       - name: Vulnerability check

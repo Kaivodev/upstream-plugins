@@ -1,0 +1,54 @@
+{
+  "name": "query_payment/rejected",
+  "source": "recorded_upstream_sim_loopback_using_independent_query_credentials",
+  "operation": "query_payment",
+  "input": {
+    "order_id": "test_20261106113325229046000_query_payment_rejected",
+    "money": {
+      "amount": "12345",
+      "currency": "CNY"
+    }
+  },
+  "config": {
+    "account_id": "rsa-demo",
+    "gateway": "http://127.0.0.1:9080"
+  },
+  "time": "2026-11-06T11:33:25.261173Z",
+  "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
+  "exchanges": [
+    {
+      "request": {
+        "method": "POST",
+        "url": "http://127.0.0.1:9080/api/rsa-demo/query",
+        "headers": {
+          "Content-Type": [
+            "application/json"
+          ],
+          "X-Signature": [
+            "TEST_SIGNATURE_REGENERATED_AT_REPLAY"
+          ]
+        },
+        "body": "eyJhY2NvdW50X2lkIjoicnNhLWRlbW8iLCJvcGVyYXRpb24iOiJxdWVyeSIsIm9yZGVyX2lkIjoidGVzdF8yMDI2MTEwNjExMzMyNTIyOTA0NjAwMF9xdWVyeV9wYXltZW50X3JlamVjdGVkIn0="
+      },
+      "response": {
+        "status": 200,
+        "headers": {
+          "Content-Type": [
+            "application/json; charset=utf-8"
+          ]
+        },
+        "body": "eyJyZXN1bHQiOiJyZWplY3RlZCIsImNvZGUiOiJub3RfZm91bmQifQo="
+      }
+    }
+  ],
+  "expected": {
+    "category": "rejected",
+    "result": {
+      "outcome": "rejected",
+      "code": "not_found"
+    },
+    "requests": 1,
+    "responses": 1,
+    "steps": 2
+  }
+}

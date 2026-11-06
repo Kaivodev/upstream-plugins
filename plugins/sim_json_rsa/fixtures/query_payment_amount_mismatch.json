@@ -3,7 +3,7 @@
   "source": "recorded_response_with_constructed_amount_fault",
   "operation": "query_payment",
   "input": {
-    "order_id": "test_query_payment_amount_mismatch",
+    "order_id": "test_20261106113317445452000_query_payment_amount_mismatch",
     "money": {
       "amount": "12345",
       "currency": "CNY"
@@ -13,7 +13,7 @@
     "account_id": "rsa-demo",
     "gateway": "http://127.0.0.1:9080"
   },
-  "time": "2026-11-06T06:06:27.588369Z",
+  "time": "2026-11-06T11:33:19.624124Z",
   "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
   "exchanges": [
     {
@@ -28,7 +28,7 @@
             "TEST_SIGNATURE_REGENERATED_AT_REPLAY"
           ]
         },
-        "body": "eyJhY2NvdW50X2lkIjoicnNhLWRlbW8iLCJvcGVyYXRpb24iOiJxdWVyeSIsIm9yZGVyX2lkIjoidGVzdF9xdWVyeV9wYXltZW50X2Ftb3VudF9taXNtYXRjaCJ9"
+        "body": "eyJhY2NvdW50X2lkIjoicnNhLWRlbW8iLCJvcGVyYXRpb24iOiJxdWVyeSIsIm9yZGVyX2lkIjoidGVzdF8yMDI2MTEwNjExMzMxNzQ0NTQ1MjAwMF9xdWVyeV9wYXltZW50X2Ftb3VudF9taXNtYXRjaCJ9"
       },
       "response": {
         "status": 200,
@@ -37,7 +37,7 @@
             "application/json; charset=utf-8"
           ]
         },
-        "body": "eyJjb2RlIjoib2siLCJvcmRlciI6eyJhY2NvdW50X2lkIjoicnNhLWRlbW8iLCJhbW91bnQiOjEyMzQ2LCJjdXJyZW5jeSI6IkNOWSIsIm1ldGhvZCI6ImFsaXBheSIsIm9yZGVyX2lkIjoidGVzdF9xdWVyeV9wYXltZW50X2Ftb3VudF9taXNtYXRjaCIsInN0YXR1cyI6InBlbmRpbmciLCJ1cHN0cmVhbV9pZCI6InNpbV9iNDM5N2E4MjVhMGE5ZjcyYzFkZjE1ZjJhYjhhODhmNiIsInVybCI6Imh0dHA6Ly8xMjcuMC4wLjE6OTA4MC9jYXNoaWVyL2I0Mzk3YTgyNWEwYTlmNzJjMWRmMTVmMmFiOGE4OGY2In0sInJlc3VsdCI6ImFjY2VwdGVkIn0="
+        "body": "eyJjb2RlIjoib2siLCJvcmRlciI6eyJhY2NvdW50X2lkIjoicnNhLWRlbW8iLCJhbW91bnQiOjEyMzQ2LCJjdXJyZW5jeSI6IkNOWSIsIm1ldGhvZCI6ImFsaXBheSIsIm9yZGVyX2lkIjoidGVzdF8yMDI2MTEwNjExMzMxNzQ0NTQ1MjAwMF9xdWVyeV9wYXltZW50X2Ftb3VudF9taXNtYXRjaCIsInN0YXR1cyI6InBlbmRpbmciLCJ1cHN0cmVhbV9pZCI6InNpbV8zMTMxYjA5NjFlOWM3Nzg5NDhlYmRkZjZhNDhjYTM3YiIsInVybCI6Imh0dHA6Ly8xMjcuMC4wLjE6OTA4MC9jYXNoaWVyLzMxMzFiMDk2MWU5Yzc3ODk0OGViZGRmNmE0OGNhMzdiIn0sInJlc3VsdCI6ImFjY2VwdGVkIn0="
       }
     }
   ],

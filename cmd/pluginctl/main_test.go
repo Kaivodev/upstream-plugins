@@ -22,32 +22,36 @@ func TestBuildTwiceAndVerify(t *testing.T) {
 	if e != nil {
 		t.Fatal(e)
 	}
-	a, b := filepath.Join(t.TempDir(), "a"), filepath.Join(t.TempDir(), "b")
-	for _, out := range []string{a, b} {
-		if e := run(context.Background(), []string{"build", "--root", root, "--source", "plugins/sim_form_md5", "--out", out}); e != nil {
-			t.Fatal(e)
-		}
-	}
-	x, e := host.ReadPackage(a)
-	if e != nil {
-		t.Fatal(e)
-	}
-	y, e := host.ReadPackage(b)
-	if e != nil {
-		t.Fatal(e)
-	}
-	if !bytes.Equal(x.Wasm, y.Wasm) || !bytes.Equal(x.ManifestJSON, y.ManifestJSON) {
-		t.Fatal("build is not byte reproducible")
-	}
-	if e = run(context.Background(), []string{"verify", "--root", root, "--source", "plugins/sim_form_md5", "--dir", a}); e != nil {
-		t.Fatal(e)
-	}
-	x.Wasm[len(x.Wasm)-1] ^= 1
-	if e = os.WriteFile(filepath.Join(a, "plugin.wasm"), x.Wasm, 0644); e != nil {
-		t.Fatal(e)
-	}
-	if e = run(context.Background(), []string{"verify", "--root", root, "--source", "plugins/sim_form_md5", "--dir", a}); e == nil {
-		t.Fatal("tampered artifact verified")
+	for _, plugin := range []string{"sim_json_rsa", "sim_form_md5", "sim_json_rsa_verify", "sim_form_md5_verify"} {
+		t.Run(plugin, func(t *testing.T) {
+			a, b := filepath.Join(t.TempDir(), "a"), filepath.Join(t.TempDir(), "b")
+			for _, out := range []string{a, b} {
+				if e := run(context.Background(), []string{"build", "--root", root, "--source", "plugins/" + plugin, "--out", out}); e != nil {
+					t.Fatal(e)
+				}
+			}
+			x, e := host.ReadPackage(a)
+			if e != nil {
+				t.Fatal(e)
+			}
+			y, e := host.ReadPackage(b)
+			if e != nil {
+				t.Fatal(e)
+			}
+			if !bytes.Equal(x.Wasm, y.Wasm) || !bytes.Equal(x.ManifestJSON, y.ManifestJSON) {
+				t.Fatal("build is not byte reproducible")
+			}
+			if e = run(context.Background(), []string{"verify", "--root", root, "--source", "plugins/" + plugin, "--dir", a}); e != nil {
+				t.Fatal(e)
+			}
+			x.Wasm[len(x.Wasm)-1] ^= 1
+			if e = os.WriteFile(filepath.Join(a, "plugin.wasm"), x.Wasm, 0644); e != nil {
+				t.Fatal(e)
+			}
+			if e = run(context.Background(), []string{"verify", "--root", root, "--source", "plugins/" + plugin, "--dir", a}); e == nil {
+				t.Fatal("tampered artifact verified")
+			}
+		})
 	}
 }
 func TestCommandValidation(t *testing.T) {

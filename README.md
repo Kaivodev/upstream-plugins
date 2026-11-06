@@ -1,8 +1,8 @@
-# upstream-plugins
+# upstream-plugins v0.2.0
 
-公开的 Kaivo 上游协议插件仓库：版本化 JSON ABI、纯 Go wazero 宿主、Go SDK、两个仅测试用的 upstream-sim 插件，以及离线构建、打包、回放、源码复验与测试录制工具。
+公开的 Kaivo 上游协议插件仓库：版本化 JSON ABI、纯 Go wazero 宿主、Go SDK、四个仅测试用的 upstream-sim 插件，以及离线构建、打包、回放、源码复验与测试录制工具。
 
-插件只翻译协议，不持明文密钥、不自行联网、不改变资金状态。payment / reconciliation 负责审批、账户与订单绑定、密钥版本、HTTP 实际出口和业务状态机。当前只交付六个支付操作；payment 接入属于下一任务，M4 对账接口只保留名称。完整调用约定和限制见 [ABI.md](ABI.md)。
+插件只翻译协议，不持明文密钥、不自行联网、不改变资金状态。payment / reconciliation 负责审批、账户与订单绑定、密钥版本、HTTP 实际出口和业务状态机。当前交付 ABI v2 的七个支付操作及只读 verification 类型；payment 接入属于下一任务，M4 对账接口只保留名称。完整调用约定和限制见 [ABI.md](ABI.md)。
 
 ## 构建与验证
 
@@ -11,10 +11,11 @@
 ```sh
 export GOWORK=off
 make fmt check build plugins-replay
+make plugins-verify
 make bench
 ```
 
-`check` 执行 vet 和 race 测试，测试期间从 testdata 的 Go 源码构建恶意 reactor，另验证两个实际插件。`plugins-replay` 构建全部插件到忽略的 dist/ 后回放全部 fixtures。基准不设置通过阈值。CI 使用 Go 1.27.x 初始化，再显式选择固定 1.27.3，执行完整验证和 govulncheck；本地有现成 govulncheck 时也应运行。
+`check` 执行 vet 和 race 测试，测试期间从 testdata 的 Go 源码构建恶意 reactor，另验证四个实际插件。`plugins-replay` 构建全部插件到忽略的 dist/ 后回放全部 fixtures。基准不设置通过阈值。CI 使用 Go 1.27.x 初始化，再显式选择固定 1.27.3，执行完整验证和 govulncheck；本地有现成 govulncheck 时也应运行。
 
 ```sh
 bin/pluginctl build --source plugins/sim_json_rsa --out dist/sim_json_rsa
@@ -23,7 +24,7 @@ bin/pluginctl replay --dir dist/package_json_rsa --out dist/report.json
 bin/pluginctl verify --source plugins/sim_json_rsa --dir dist/package_json_rsa
 ```
 
-包是包含 manifest.json、plugin.wasm、fixtures/ 的目录。build 不修改源码 manifest，写入固定工具链、源码提交、源码树摘要；未提交/脏工作区使用 `uncommitted`，生产审批方应拒绝它。构建不注入时间、绝对路径、VCS 自动元数据或 build ID。源码树摘要对排序后的生产 .go 文件（排除 testdata 和 _test.go）、go.mod、go.sum，依次写入大端 uint64 路径长度、路径、内容长度、内容后计算 SHA-256；同一源码树跨目录可复现。源码 manifest 与 fixtures 通过规范 manifest / 回归报告分别绑定，不混入源码树摘要。
+包是包含 manifest.json、plugin.wasm、fixtures/ 的目录。build 不修改源码 manifest，写入固定工具链、源码提交、源码树摘要；未提交/脏工作区使用 `uncommitted`，生产审批方应拒绝它。构建不注入时间、绝对路径、VCS 自动元数据或 build ID。源码树摘要只覆盖该插件的 WASI 构建闭包：用固定环境的 go list -deps 获取模块内依赖包，排序收集其非测试 Go 文件与 embed 文件，再加 go.mod/go.sum；带域标签和 uint64 长度前缀的确定性编码见 [ABI.md](ABI.md#源码构建闭包摘要)。修改宿主、命令行工具或其他插件不会影响未依赖它们的插件摘要。源码 manifest 与 fixtures 通过规范 manifest / 回归报告分别绑定。构建工具继承调用方缓存设置。
 
 ## 宿主接入
 
@@ -41,13 +42,30 @@ result := h.Execute(ctx, loaded, abi.QueryPayment, inputJSON, env)
 
 ## 编写插件
 
-在 main 包 init 中向 sdk 注册六个普通 Go 处理函数。用 `sdk.Input[T]` 严格解析输入，通过 `sdk.Config/Sign/Verify/Equal/Log` 调用宿主，再返回 `sdk.Request/Result/Reject/Fail`。不写任何指针或内存代码，全部导入/导出由 SDK 提供；实例之间只通过 responses 传递已收到的上游响应。样例见 [JSON-RSA](plugins/sim_json_rsa/main.go)、[Form-MD5](plugins/sim_form_md5/main.go) 和共享的 [协议翻译](internal/simprotocol/protocol.go)。
+在 main 包 init 中向 sdk 注册七个普通 Go 处理函数。用 `sdk.Input[T]` 严格解析输入，通过 `sdk.Config/Sign/Verify/Equal/Log` 调用宿主，再返回 `sdk.Request/Result/Reject/Fail`。不写任何指针或内存代码，全部导入/导出由 SDK 提供；实例之间只通过 responses 传递已收到的上游响应。样例见 [JSON-RSA](plugins/sim_json_rsa/main.go)、[Form-MD5](plugins/sim_form_md5/main.go) 和共享的 [协议翻译](internal/simprotocol/protocol.go)。
 
 金额使用带币种的最小单位字符串。签名可用 `sdk.Secret("shared")` 引用密钥拼接；Bearer 令牌头使用 `Bearer {{secret:access_token}}`，宿主发送时替换。签名、非密钥配置和请求头占位都不能用于导出凭据。
 
+## ABI v2 与独立核验
+
+`expires_at` 是 create_payment pending 指引的可选 UTC RFC3339Nano 到期时间，必须带 url 或 qrcode，且满足宿主校验时刻 < expires_at ≤ 校验时刻 + 24 小时。未提供时由服务使用自身配置的默认展示期限。
+
+回调先执行 route_callback（输入原始 method/headers/body，可选 raw_query/source_ip），取得不可信 `result.route.order_id`；服务查候选原订单，再用订单快照执行 verify_callback。路由不解析凭据，禁止 HTTP、sign、verify，不代表验签成功；路由失败归 not_sent。
+
+| 插件 | 类型 | 凭据引用 | 操作 |
+| --- | --- | --- | --- |
+| sim_json_rsa | payment | platform_private / upstream_public | 七项支付操作 |
+| sim_form_md5 | payment | shared | 七项支付操作 |
+| sim_json_rsa_verify | verification | query_private_key | query_payment、query_refund |
+| sim_form_md5_verify | verification | query_key | query_payment、query_refund |
+
+verification 必须且只能声明两项查询，无 callback 段；使用 `host.Options{PluginType: "verification"}`，其他操作在执行前被拒绝。上游独立发放查询凭据；payment 的包、凭据、查询结果与回调不能作为 reconciliation 的独立证据（A121）。
+
+`make plugins-verify` 对四个插件构建、回放、打包并逐字节源码复验；CI 执行此目标。输出包与报告位于忽略的 dist/。
+
 ## fixtures 与录制
 
-每个模拟器插件有 28 个用例：五个 HTTP 操作各覆盖成功、拒绝、超时、签名错误和金额不符；回调覆盖成功、签名错误和金额不符。所有账户/订单均为明确的本地测试数据。
+两个 payment 插件各有 30 个用例，两个 verification 插件各有 10 个用例：五个 HTTP 操作各覆盖成功、拒绝、超时、签名错误和金额不符；回调验签覆盖成功、签名错误和金额不符；回调路由覆盖成功与 malformed。verification 的两项查询各覆盖五种 HTTP 场景。所有账户/订单均为明确的本地测试数据。
 
 本次使用相邻 upstream-sim 在 **test 环境、127.0.0.1:9080** 实录：成功、明确拒绝、破坏签名后得到的 HTTP 400、create 的真实超时以及真实回调（含签名错误、金额不符）。模拟器没有其他操作的延迟/应答金额篡改开关，因此其他操作的超时为构造传输故障，五个 HTTP 操作的金额不符为实录应答修改 amount。每个 fixture.source 明确标记来源。
 
@@ -61,10 +79,16 @@ bin/pluginctl record --test-only --dir dist/sim_json_rsa \
   --sim-url http://127.0.0.1:9080 --out plugins/sim_json_rsa/fixtures
 bin/pluginctl record --test-only --dir dist/sim_form_md5 \
   --sim-url http://127.0.0.1:9080 --out plugins/sim_form_md5/fixtures
+bin/pluginctl record --test-only --dir dist/sim_json_rsa_verify \
+  --setup-dir dist/sim_json_rsa --sim-url http://127.0.0.1:9080 \
+  --out plugins/sim_json_rsa_verify/fixtures
+bin/pluginctl record --test-only --dir dist/sim_form_md5_verify \
+  --setup-dir dist/sim_form_md5 --sim-url http://127.0.0.1:9080 \
+  --out plugins/sim_form_md5_verify/fixtures
 make plugins-replay
 ```
 
-内置配方需要模拟器自动生成的测试凭据，会读取受控凭据端点并在内存使用，监听临时回环回调端口、创建测试单、点击模拟付款并生成模拟退款。重录使用新的测试订单前缀，避免污染原测试订单幂等结果。
+verification 录制必须用 --setup-dir 指定匹配风格的 payment 包，仅用于准备订单与退款；实际查询使用独立查询凭据。内置配方的请求超时显式设置为 2 秒，以实录模拟器的 3 秒 create 延迟；不改变宿主默认值。内置配方需要模拟器自动生成的测试凭据，会读取受控凭据端点并在内存使用，监听临时回环回调端口、创建测试单、点击模拟付款并生成模拟退款。重录使用新的测试订单前缀，避免污染原测试订单幂等结果。
 
 其他测试上游可以按单个操作输入录制：
 
@@ -80,4 +104,4 @@ case 是 `host.Fixture` 的输入计划，至少包含 name（operation/scenario
 
 ## 使用边界
 
-公开仓库不得放真实密钥、商户数据或个人信息；本地配置、密钥文件、编译产物被忽略。包加载不是审批，回放通过不是资金链路验收。宿主不存储证据、不执行平台订单状态变更；服务必须保留原始证据的加密存储、独立查询与对账、双人审批、生产禁用模拟器等边界。当前没有生产发布或相邻仓库修改。
+公开仓库不得放真实密钥、商户数据或个人信息；本地配置、密钥文件、编译产物被忽略。包加载不是审批，回放通过不是资金链路验收。宿主不存储证据、不执行平台订单状态变更；服务必须保留原始证据的加密存储、独立查询与对账、双人审批、生产禁用模拟器等边界。本仓库不实现 payment 或 reconciliation 服务接入；回放与本机模拟器实录不代表真实渠道或资金链路验收。

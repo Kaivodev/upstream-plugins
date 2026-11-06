@@ -132,7 +132,7 @@ func RecordCase(ctx context.Context, p host.Package, f host.Fixture, c Credentia
 		return errors.New("unsupported recording operation")
 	}
 	scenario, ok := strings.CutPrefix(f.Name, string(f.Operation)+"/")
-	if !ok || strings.ContainsAny(scenario, "/\\") || !slices.Contains([]string{"success", "rejected", "timeout", "signature_error", "amount_mismatch"}, scenario) {
+	if !ok || strings.ContainsAny(scenario, "/\\") || !slices.Contains([]string{"success", "rejected", "timeout", "signature_error", "amount_mismatch", "malformed"}, scenario) {
 		return errors.New("case name must be operation/scenario")
 	}
 	if f.Time == "" {

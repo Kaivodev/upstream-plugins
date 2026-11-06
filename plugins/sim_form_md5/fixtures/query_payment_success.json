@@ -3,7 +3,7 @@
   "source": "recorded_upstream_sim_loopback",
   "operation": "query_payment",
   "input": {
-    "order_id": "test_query_payment_success",
+    "order_id": "test_20261106113320971633000_query_payment_success",
     "money": {
       "amount": "12345",
       "currency": "CNY"
@@ -13,7 +13,7 @@
     "account_id": "md5-demo",
     "gateway": "http://127.0.0.1:9080"
   },
-  "time": "2026-11-06T06:07:30.877427Z",
+  "time": "2026-11-06T11:33:23.062072Z",
   "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
   "exchanges": [
     {
@@ -25,7 +25,7 @@
             "application/x-www-form-urlencoded"
           ]
         },
-        "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZvcGVyYXRpb249cXVlcnkmb3JkZXJfaWQ9dGVzdF9xdWVyeV9wYXltZW50X3N1Y2Nlc3Mmc2lnbj1URVNUX1NJR05BVFVSRV9SRUdFTkVSQVRFRF9BVF9SRVBMQVk="
+        "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZvcGVyYXRpb249cXVlcnkmb3JkZXJfaWQ9dGVzdF8yMDI2MTEwNjExMzMyMDk3MTYzMzAwMF9xdWVyeV9wYXltZW50X3N1Y2Nlc3Mmc2lnbj1URVNUX1NJR05BVFVSRV9SRUdFTkVSQVRFRF9BVF9SRVBMQVk="
       },
       "response": {
         "status": 200,
@@ -34,7 +34,7 @@
             "application/json; charset=utf-8"
           ]
         },
-        "body": "eyJyZXN1bHQiOiJhY2NlcHRlZCIsImNvZGUiOiJvayIsIm9yZGVyIjp7ImFjY291bnRfaWQiOiJtZDUtZGVtbyIsIm9yZGVyX2lkIjoidGVzdF9xdWVyeV9wYXltZW50X3N1Y2Nlc3MiLCJ1cHN0cmVhbV9pZCI6InNpbV8yYjlhODRiNmVjNTRjZGZjM2VkZmNiZTY4NmYwNzRiZSIsImFtb3VudCI6MTIzNDUsImN1cnJlbmN5IjoiQ05ZIiwibWV0aG9kIjoiYWxpcGF5Iiwic3RhdHVzIjoicGVuZGluZyIsInVybCI6Imh0dHA6Ly8xMjcuMC4wLjE6OTA4MC9jYXNoaWVyLzJiOWE4NGI2ZWM1NGNkZmMzZWRmY2JlNjg2ZjA3NGJlIn19Cg=="
+        "body": "eyJyZXN1bHQiOiJhY2NlcHRlZCIsImNvZGUiOiJvayIsIm9yZGVyIjp7ImFjY291bnRfaWQiOiJtZDUtZGVtbyIsIm9yZGVyX2lkIjoidGVzdF8yMDI2MTEwNjExMzMyMDk3MTYzMzAwMF9xdWVyeV9wYXltZW50X3N1Y2Nlc3MiLCJ1cHN0cmVhbV9pZCI6InNpbV80Mjk3MDAwYWNjN2UzYzk1NzFlZDYwZGY0ZDFiZjlkMCIsImFtb3VudCI6MTIzNDUsImN1cnJlbmN5IjoiQ05ZIiwibWV0aG9kIjoiYWxpcGF5Iiwic3RhdHVzIjoicGVuZGluZyIsInVybCI6Imh0dHA6Ly8xMjcuMC4wLjE6OTA4MC9jYXNoaWVyLzQyOTcwMDBhY2M3ZTNjOTU3MWVkNjBkZjRkMWJmOWQwIn19Cg=="
       }
     }
   ],
@@ -43,14 +43,14 @@
     "result": {
       "outcome": "completed",
       "payment": {
-        "order_id": "test_query_payment_success",
-        "upstream_id": "sim_2b9a84b6ec54cdfc3edfcbe686f074be",
+        "order_id": "test_20261106113320971633000_query_payment_success",
+        "upstream_id": "sim_4297000acc7e3c9571ed60df4d1bf9d0",
         "money": {
           "amount": "12345",
           "currency": "CNY"
         },
         "status": "pending",
-        "url": "http://127.0.0.1:9080/cashier/2b9a84b6ec54cdfc3edfcbe686f074be"
+        "url": "http://127.0.0.1:9080/cashier/4297000acc7e3c9571ed60df4d1bf9d0"
       }
     },
     "requests": 1,

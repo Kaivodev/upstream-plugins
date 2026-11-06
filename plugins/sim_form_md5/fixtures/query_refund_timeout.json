@@ -3,8 +3,8 @@
   "source": "constructed_transport_timeout_from_recorded_protocol",
   "operation": "query_refund",
   "input": {
-    "order_id": "test_query_refund_timeout",
-    "refund_id": "test_query_refund_timeout_refund",
+    "order_id": "test_20261106113320971633000_query_refund_timeout",
+    "refund_id": "test_20261106113320971633000_query_refund_timeout_refund",
     "money": {
       "amount": "12345",
       "currency": "CNY"
@@ -14,7 +14,7 @@
     "account_id": "md5-demo",
     "gateway": "http://127.0.0.1:9080"
   },
-  "time": "2026-11-06T06:07:31.270949Z",
+  "time": "2026-11-06T11:33:23.419597Z",
   "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
   "exchanges": [
     {
@@ -26,7 +26,7 @@
             "application/x-www-form-urlencoded"
           ]
         },
-        "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZvcGVyYXRpb249cmVmdW5kLXF1ZXJ5Jm9yZGVyX2lkPXRlc3RfcXVlcnlfcmVmdW5kX3RpbWVvdXQmcmVmdW5kX2lkPXRlc3RfcXVlcnlfcmVmdW5kX3RpbWVvdXRfcmVmdW5kJnNpZ249VEVTVF9TSUdOQVRVUkVfUkVHRU5FUkFURURfQVRfUkVQTEFZ"
+        "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZvcGVyYXRpb249cmVmdW5kLXF1ZXJ5Jm9yZGVyX2lkPXRlc3RfMjAyNjExMDYxMTMzMjA5NzE2MzMwMDBfcXVlcnlfcmVmdW5kX3RpbWVvdXQmcmVmdW5kX2lkPXRlc3RfMjAyNjExMDYxMTMzMjA5NzE2MzMwMDBfcXVlcnlfcmVmdW5kX3RpbWVvdXRfcmVmdW5kJnNpZ249VEVTVF9TSUdOQVRVUkVfUkVHRU5FUkFURURfQVRfUkVQTEFZ"
       },
       "error": "timeout"
     }

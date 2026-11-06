@@ -92,3 +92,6 @@ func queryRefund(p, n uint32) uint64 { return dispatch(abi.QueryRefund, p, n) }
 
 //go:wasmexport verify_callback
 func callback(p, n uint32) uint64 { return dispatch(abi.VerifyCallback, p, n) }
+
+//go:wasmexport route_callback
+func routeCallback(p, n uint32) uint64 { return dispatch(abi.RouteCallback, p, n) }

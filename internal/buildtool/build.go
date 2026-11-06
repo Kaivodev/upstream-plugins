@@ -9,6 +9,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"io"
 	"io/fs"
 	"os"
 	"os/exec"
@@ -41,44 +42,80 @@ func GoEnv() []string {
 	}
 	return env
 }
-func TreeDigest(root string) (string, error) {
-	var paths []string
-	err := filepath.WalkDir(root, func(path string, d fs.DirEntry, e error) error {
-		if e != nil {
-			return e
-		}
-		if d.IsDir() {
-			if d.Name() == ".git" || d.Name() == "dist" || d.Name() == "bin" || d.Name() == "testdata" {
-				return filepath.SkipDir
-			}
-			return nil
-		}
-		rel, e := filepath.Rel(root, path)
-		if e != nil {
-			return e
-		}
-		if (strings.HasSuffix(path, ".go") && !strings.HasSuffix(path, "_test.go")) || rel == "go.mod" || rel == "go.sum" {
-			if !d.Type().IsRegular() {
-				return errors.New("non-regular source")
-			}
-			paths = append(paths, filepath.ToSlash(rel))
-		}
-		return nil
-	})
+
+// TreeDigest binds exactly the module-local WASI build closure, not host tools.
+func TreeDigest(ctx context.Context, root, source string) (string, error) {
+	root, err := filepath.Abs(root)
 	if err != nil {
 		return "", err
 	}
-	sort.Strings(paths)
-	h := sha256.New()
-	for _, path := range paths {
-		b, e := os.ReadFile(filepath.Join(root, path))
-		if e != nil {
-			return "", e
+	root, err = filepath.EvalSymlinks(root)
+	if err != nil {
+		return "", err
+	}
+	cmd := exec.CommandContext(ctx, "go", "list", "-deps", "-json", "./"+filepath.ToSlash(source))
+	cmd.Dir, cmd.Env = root, GoEnv()
+	data, err := cmd.Output()
+	if err != nil {
+		return "", errors.New("cannot list plugin build closure")
+	}
+	paths := map[string]bool{"go.mod": true, "go.sum": true}
+	decoder := json.NewDecoder(bytes.NewReader(data))
+	for {
+		var pkg struct {
+			Standard                      bool
+			Dir                           string
+			GoFiles, CgoFiles, EmbedFiles []string
+			Module                        *struct {
+				Path, Dir string
+				Main      bool
+			}
 		}
-		_ = binary.Write(h, binary.BigEndian, uint64(len(path)))
-		h.Write([]byte(path))
-		_ = binary.Write(h, binary.BigEndian, uint64(len(b)))
-		h.Write(b)
+		if err := decoder.Decode(&pkg); err == io.EOF {
+			break
+		} else if err != nil {
+			return "", err
+		}
+		if pkg.Standard {
+			continue
+		}
+		if pkg.Module == nil || !pkg.Module.Main || pkg.Module.Path != "github.com/Kaivodev/upstream-plugins" || filepath.Clean(pkg.Module.Dir) != root {
+			return "", errors.New("plugin dependency not allowed")
+		}
+		for _, name := range append(append(pkg.GoFiles, pkg.CgoFiles...), pkg.EmbedFiles...) {
+			rel, e := filepath.Rel(root, filepath.Join(pkg.Dir, name))
+			if e != nil || !fs.ValidPath(filepath.ToSlash(rel)) {
+				return "", errors.New("source outside module")
+			}
+			paths[filepath.ToSlash(rel)] = true
+		}
+	}
+	ordered := make([]string, 0, len(paths))
+	for path := range paths {
+		ordered = append(ordered, path)
+	}
+	sort.Strings(ordered)
+	h := sha256.New()
+	field := func(b []byte) { _ = binary.Write(h, binary.BigEndian, uint64(len(b))); h.Write(b) }
+	field([]byte("kaivo.plugin.source-closure.v2"))
+	field([]byte("GOOS=wasip1;GOARCH=wasm;CGO_ENABLED=0;tags="))
+	for _, path := range ordered {
+		abs := filepath.Join(root, filepath.FromSlash(path))
+		st, err := os.Lstat(abs)
+		if err != nil {
+			return "", err
+		}
+		resolved, err := filepath.EvalSymlinks(abs)
+		if err != nil || resolved != abs || !st.Mode().IsRegular() {
+			return "", errors.New("non-regular or linked source")
+		}
+		b, err := os.ReadFile(abs)
+		if err != nil {
+			return "", err
+		}
+		field([]byte("file"))
+		field([]byte(path))
+		field(b)
 	}
 	return hex.EncodeToString(h.Sum(nil)), nil
 }
@@ -117,17 +154,7 @@ func Build(ctx context.Context, root, source, out string) (host.Package, error) 
 	if err = abi.Decode(template, &manifest); err != nil {
 		return p, err
 	}
-	// Reject dependencies outside the standard library and this module.
-	deps, err := run("list", "-deps", "-f", `{{if not .Standard}}{{.ImportPath}}{{end}}`, "./"+filepath.ToSlash(rel))
-	if err != nil {
-		return p, err
-	}
-	for _, line := range strings.Fields(string(deps)) {
-		if !strings.HasPrefix(line, "github.com/Kaivodev/upstream-plugins/") {
-			return p, errors.New("plugin dependency not allowed")
-		}
-	}
-	tree, err := TreeDigest(root)
+	tree, err := TreeDigest(ctx, root, rel)
 	if err != nil {
 		return p, err
 	}

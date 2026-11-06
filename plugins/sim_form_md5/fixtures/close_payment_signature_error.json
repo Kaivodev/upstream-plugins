@@ -3,7 +3,7 @@
   "source": "recorded_upstream_sim_loopback",
   "operation": "close_payment",
   "input": {
-    "order_id": "test_close_payment_signature_error",
+    "order_id": "test_20261106113320971633000_close_payment_signature_error",
     "money": {
       "amount": "12345",
       "currency": "CNY"
@@ -13,7 +13,7 @@
     "account_id": "md5-demo",
     "gateway": "http://127.0.0.1:9080"
   },
-  "time": "2026-11-06T06:07:31.051253Z",
+  "time": "2026-11-06T11:33:23.225363Z",
   "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
   "exchanges": [
     {
@@ -25,7 +25,7 @@
             "application/x-www-form-urlencoded"
           ]
         },
-        "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZvcGVyYXRpb249Y2xvc2Umb3JkZXJfaWQ9dGVzdF9jbG9zZV9wYXltZW50X3NpZ25hdHVyZV9lcnJvciZzaWduPVRFU1RfU0lHTkFUVVJFX1JFR0VORVJBVEVEX0FUX1JFUExBWQ=="
+        "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZvcGVyYXRpb249Y2xvc2Umb3JkZXJfaWQ9dGVzdF8yMDI2MTEwNjExMzMyMDk3MTYzMzAwMF9jbG9zZV9wYXltZW50X3NpZ25hdHVyZV9lcnJvciZzaWduPVRFU1RfU0lHTkFUVVJFX1JFR0VORVJBVEVEX0FUX1JFUExBWQ=="
       },
       "response": {
         "status": 400,

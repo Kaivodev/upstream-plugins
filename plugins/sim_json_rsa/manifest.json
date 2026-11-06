@@ -1,8 +1,8 @@
 {
   "type": "payment",
   "code": "sim_json_rsa",
-  "version": "1.0.0",
-  "abi_version": 1,
+  "version": "0.2.0",
+  "abi_version": 2,
   "domains": [
     "127.0.0.1"
   ],
@@ -28,6 +28,7 @@
     "close_payment",
     "refund",
     "query_refund",
+    "route_callback",
     "verify_callback"
   ],
   "callback": {

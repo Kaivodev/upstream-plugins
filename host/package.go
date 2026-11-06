@@ -67,7 +67,7 @@ var digestRE = regexp.MustCompile(`^[0-9a-f]{64}$`)
 var commitRE = regexp.MustCompile(`^([0-9a-f]{40}|[0-9a-f]{64}|uncommitted)$`)
 
 func (m Manifest) Validate() error {
-	if (m.Type != "payment" && m.Type != "statement") || !codeRE.MatchString(m.Code) || !semverRE.MatchString(m.Version) || m.ABIVersion != abi.Version {
+	if (m.Type != "payment" && m.Type != "verification" && m.Type != "statement") || !codeRE.MatchString(m.Code) || !semverRE.MatchString(m.Version) || m.ABIVersion != abi.Version {
 		return errors.New("invalid manifest identity or ABI")
 	}
 	// Numeric prerelease components must not have leading zeros (SemVer 2).
@@ -91,10 +91,16 @@ func (m Manifest) Validate() error {
 	}
 	seen = map[string]bool{}
 	for _, op := range m.Capabilities {
-		if seen[string(op)] || (m.Type == "payment" && !op.Payment()) || (m.Type == "statement" && op != abi.FetchStatement && op != abi.ParseStatement) {
+		if seen[string(op)] || (m.Type == "verification" && op != abi.QueryPayment && op != abi.QueryRefund) || (m.Type == "payment" && !op.Payment()) || (m.Type == "statement" && op != abi.FetchStatement && op != abi.ParseStatement) {
 			return errors.New("invalid capability")
 		}
 		seen[string(op)] = true
+	}
+	if m.Type == "verification" && (len(m.Capabilities) != 2 || m.Callback != nil) {
+		return errors.New("verification requires exactly both query capabilities and no callback")
+	}
+	if slices.Contains(m.Capabilities, abi.VerifyCallback) && !slices.Contains(m.Capabilities, abi.RouteCallback) {
+		return errors.New("callback requires routing and verification capabilities")
 	}
 	if len(m.Secrets) > 32 || len(m.Config) > 64 || len(m.PublicKeys) > 32 {
 		return errors.New("too many manifest fields")
@@ -116,7 +122,7 @@ func (m Manifest) Validate() error {
 			return errors.New("invalid nonsecret configuration definition")
 		}
 	}
-	if slices.Contains(m.Capabilities, abi.VerifyCallback) {
+	if slices.Contains(m.Capabilities, abi.VerifyCallback) || slices.Contains(m.Capabilities, abi.RouteCallback) {
 		if m.Callback == nil || len(m.Callback.Methods) == 0 || len(m.Callback.ContentTypes) == 0 || !validMedia(m.Callback.AckContentType, false) || m.Callback.AckBody == "" || m.Callback.AckStatus < 200 || m.Callback.AckStatus > 299 || len(m.Callback.AckBody) > 1024 {
 			return errors.New("invalid callback rules")
 		}

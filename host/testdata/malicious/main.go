@@ -18,6 +18,7 @@ import (
 )
 
 var testSecret string
+var forceV1 string
 var stateCounter int
 var retained []byte
 var allocations = map[uint32][]byte{}
@@ -28,6 +29,9 @@ func config(uint32, uint32, uint32, uint32) uint32
 
 //go:wasmimport kaivo sign
 func sign(uint32, uint32, uint32, uint32) uint32
+
+//go:wasmimport kaivo verify
+func verify(uint32, uint32, uint32, uint32) uint32
 
 //go:wasmimport kaivo log
 func logMessage(uint32, uint32, uint32, uint32) uint32
@@ -40,7 +44,12 @@ func alloc(n uint32) uint32 { b := make([]byte, n); p := pointer(b); allocations
 func dealloc(p, n uint32) { delete(allocations, p) }
 
 //go:wasmexport abi_version
-func version() uint32        { return abi.Version }
+func version() uint32 {
+	if forceV1 == "yes" {
+		return 1
+	}
+	return abi.Version
+}
 func packed(b []byte) uint64 { output = b; return uint64(pointer(b))<<32 | uint64(len(b)) }
 func invoke(f func(uint32, uint32, uint32, uint32) uint32, v any) []byte {
 	b, _ := json.Marshal(v)
@@ -58,6 +67,33 @@ func query(p, n uint32) uint64 {
 	mode := in.OrderID
 	req := &abi.Request{Method: "POST", URL: "https://allowed.example/api", Headers: map[string][]string{}, Body: []byte("test")}
 	result := &abi.Result{Outcome: "error", Code: "deliberate"}
+	if strings.HasPrefix(mode, "expiry_") && (len(c.Responses) > 0 || mode == "expiry_before") {
+		expiry := time.Now().UTC().Add(time.Hour).Format(time.RFC3339Nano)
+		p := &abi.PaymentOutput{OrderID: mode, UpstreamID: "test", Money: in.Money, Status: "pending", URL: "https://allowed.example/pay", ExpiresAt: expiry}
+		switch mode {
+		case "expiry_past", "expiry_before":
+			p.ExpiresAt = time.Now().UTC().Add(-time.Nanosecond).Format(time.RFC3339Nano)
+		case "expiry_now":
+			p.ExpiresAt = time.Now().UTC().Format(time.RFC3339Nano)
+		case "expiry_day":
+			p.ExpiresAt = time.Now().UTC().Add(24 * time.Hour).Format(time.RFC3339Nano)
+		case "expiry_over":
+			p.ExpiresAt = time.Now().UTC().Add(24*time.Hour + time.Nanosecond).Format(time.RFC3339Nano)
+		case "expiry_status":
+			p.Status = "paid"
+		case "expiry_no_instruction":
+			p.URL = ""
+		case "expiry_offset":
+			p.ExpiresAt = "2026-11-06T01:00:00+00:00"
+		case "expiry_bad":
+			p.ExpiresAt = "tomorrow"
+		case "expiry_absent":
+			p.ExpiresAt = ""
+		}
+		b, _ := json.Marshal(abi.Step{Result: &abi.Result{Outcome: "completed", Payment: p}})
+		return packed(b)
+	}
+
 	switch mode {
 	case "state":
 		stateCounter++
@@ -159,3 +195,32 @@ func query(p, n uint32) uint64 {
 //go:wasmexport verify_callback
 func callback(p, n uint32) uint64 { return query(p, n) }
 func main()                       {}
+
+//go:wasmexport create_payment
+func create(p, n uint32) uint64 { return query(p, n) }
+
+//go:wasmexport route_callback
+func route(p, n uint32) uint64 {
+	var c abi.Call
+	_ = json.Unmarshal(allocations[p], &c)
+	var in abi.RouteCallbackInput
+	_ = json.Unmarshal(c.Input, &in)
+	switch string(in.Body) {
+	case "http":
+		b, _ := json.Marshal(abi.Step{Request: &abi.Request{Method: "POST", URL: "https://allowed.example/api"}})
+		return packed(b)
+	case "sign":
+		invoke(sign, abi.SignRequest{Algorithm: "sha256", Parts: []abi.Part{{Data: []byte("test")}}})
+	case "verify":
+		invoke(verify, abi.VerifyRequest{Algorithm: "rsa-sha256", Key: "upstream_public"})
+	case "secret":
+		invoke(config, abi.ConfigRequest{Name: "shared"})
+	case "public":
+		invoke(config, abi.ConfigRequest{Name: "upstream_public"})
+	case "allowed":
+		invoke(config, abi.ConfigRequest{Name: "mode"})
+		invoke(logMessage, abi.LogRequest{Level: "info", Message: "untrusted callback routed"})
+	}
+	b, _ := json.Marshal(abi.Step{Result: &abi.Result{Outcome: "completed", Route: &abi.RouteCallbackOutput{OrderID: "test_order"}}})
+	return packed(b)
+}

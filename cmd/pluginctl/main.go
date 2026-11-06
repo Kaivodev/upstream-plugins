@@ -29,6 +29,7 @@ func run(ctx context.Context, args []string) error {
 	f := flag.NewFlagSet(args[0], flag.ContinueOnError)
 	root := f.String("root", ".", "module source root")
 	source := f.String("source", "", "plugin source directory relative to root")
+	setupDir := f.String("setup-dir", "", "payment package used only to prepare verification recording orders")
 	dir := f.String("dir", "", "built package directory")
 	out := f.String("out", "", "output directory (or report JSON for replay)")
 	casePath := f.String("case", "", "single host.Fixture input plan for generic test recording")
@@ -145,7 +146,14 @@ func run(ctx context.Context, args []string) error {
 				}
 				return simrecord.RecordCase(ctx, p, plan, credentials, *allowHTTP, *out)
 			}
-			return simrecord.Record(ctx, p, *simURL, os.Getenv(*tokenEnv), *out)
+			var setup host.Package
+			if *setupDir != "" {
+				setup, e = host.ReadPackage(*setupDir)
+				if e != nil {
+					return e
+				}
+			}
+			return simrecord.Record(ctx, p, setup, *simURL, os.Getenv(*tokenEnv), *out)
 		}
 	}
 	return errors.New("unknown subcommand")

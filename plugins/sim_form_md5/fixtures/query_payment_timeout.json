@@ -3,7 +3,7 @@
   "source": "constructed_transport_timeout_from_recorded_protocol",
   "operation": "query_payment",
   "input": {
-    "order_id": "test_query_payment_timeout",
+    "order_id": "test_20261106113320971633000_query_payment_timeout",
     "money": {
       "amount": "12345",
       "currency": "CNY"
@@ -13,7 +13,7 @@
     "account_id": "md5-demo",
     "gateway": "http://127.0.0.1:9080"
   },
-  "time": "2026-11-06T06:07:30.918414Z",
+  "time": "2026-11-06T11:33:23.102143Z",
   "random_seed": "b25seS10ZXN0LXJlY29yZGVkLWVudHJvcHktMzJieXQ=",
   "exchanges": [
     {
@@ -25,7 +25,7 @@
             "application/x-www-form-urlencoded"
           ]
         },
-        "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZvcGVyYXRpb249cXVlcnkmb3JkZXJfaWQ9dGVzdF9xdWVyeV9wYXltZW50X3RpbWVvdXQmc2lnbj1URVNUX1NJR05BVFVSRV9SRUdFTkVSQVRFRF9BVF9SRVBMQVk="
+        "body": "YWNjb3VudF9pZD1tZDUtZGVtbyZvcGVyYXRpb249cXVlcnkmb3JkZXJfaWQ9dGVzdF8yMDI2MTEwNjExMzMyMDk3MTYzMzAwMF9xdWVyeV9wYXltZW50X3RpbWVvdXQmc2lnbj1URVNUX1NJR05BVFVSRV9SRUdFTkVSQVRFRF9BVF9SRVBMQVk="
       },
       "error": "timeout"
     }
