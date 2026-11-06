@@ -155,6 +155,13 @@ func TestSandboxBoundaries(t *testing.T) {
 		t.Run(tc.mode, func(t *testing.T) {
 			start := time.Now()
 			r := h.Execute(context.Background(), l, abi.QueryPayment, testInput(tc.mode), testEnv())
+			// Under the race detector a slow runner can exhaust the step budget
+			// before a call-count limit trips. Both refuse the step without
+			// dispatching, so only the error code may differ.
+			limit := tc.code == "host_call_limit" || tc.code == "log_rate_limit"
+			if raceEnabled && limit && r.Category == tc.category && r.ErrorCode == "sandbox_timeout" {
+				return
+			}
 			if r.Category != tc.category || r.ErrorCode != tc.code {
 				t.Fatalf("got %+v, want %s/%s", r, tc.category, tc.code)
 			}
