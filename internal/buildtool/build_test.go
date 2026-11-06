@@ -31,7 +31,7 @@ func TestSourceDigestInputs(t *testing.T) {
 	}
 }
 func TestBuildEnvironment(t *testing.T) {
-	for _, want := range []string{"GOWORK=off", "GOCACHE=/private/tmp/codex-gocache/upstream-plugins", "GOOS=wasip1", "GOARCH=wasm", "CGO_ENABLED=0", "GOPROXY=off", "GOTOOLCHAIN=local"} {
+	for _, want := range []string{"GOWORK=off", "GOOS=wasip1", "GOARCH=wasm", "CGO_ENABLED=0", "GOPROXY=off", "GOTOOLCHAIN=local"} {
 		found := false
 		key, _, _ := strings.Cut(want, "=")
 		for _, v := range GoEnv() {

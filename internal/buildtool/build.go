@@ -23,7 +23,7 @@ import (
 const Toolchain = "go1.27.3"
 
 func GoEnv() []string {
-	overrides := map[string]string{"GOWORK": "off", "GOCACHE": "/private/tmp/codex-gocache/upstream-plugins", "GOOS": "wasip1", "GOARCH": "wasm", "CGO_ENABLED": "0", "GOTOOLCHAIN": "local", "GOPROXY": "off", "GOSUMDB": "off", "GOFLAGS": "", "GOEXPERIMENT": "", "GODEBUG": "", "GOWASM": ""}
+	overrides := map[string]string{"GOWORK": "off", "GOOS": "wasip1", "GOARCH": "wasm", "CGO_ENABLED": "0", "GOTOOLCHAIN": "local", "GOPROXY": "off", "GOSUMDB": "off", "GOFLAGS": "", "GOEXPERIMENT": "", "GODEBUG": "", "GOWASM": ""}
 	env := []string{}
 	for _, v := range os.Environ() {
 		k, _, _ := strings.Cut(v, "=")

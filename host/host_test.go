@@ -96,7 +96,7 @@ func TestMain(m *testing.M) {
 	os.Exit(code)
 }
 func wasmEnv() []string {
-	keys := map[string]string{"GOWORK": "off", "GOCACHE": "/private/tmp/codex-gocache/upstream-plugins", "GOOS": "wasip1", "GOARCH": "wasm", "CGO_ENABLED": "0", "GOPROXY": "off", "GOTOOLCHAIN": "local", "GOFLAGS": ""}
+	keys := map[string]string{"GOWORK": "off", "GOOS": "wasip1", "GOARCH": "wasm", "CGO_ENABLED": "0", "GOPROXY": "off", "GOTOOLCHAIN": "local", "GOFLAGS": ""}
 	env := []string{}
 	for _, v := range os.Environ() {
 		k, _, _ := strings.Cut(v, "=")
