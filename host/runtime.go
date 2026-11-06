@@ -71,16 +71,19 @@ func New(ctx context.Context, o Options) (*Host, error) {
 			s, _ := ctx.Value(invocationKey{}).(*invocation)
 			if s != nil {
 				s.calls++
+				// WASI parameters are i32. wazero does not guarantee zeroed upper
+				// bits in the uint64 slots (they are not on amd64), so decode them.
 				if slices.Contains(def.ExportNames(), "random_get") && len(params) == 2 {
-					if params[1] > 64<<10 {
+					n := uint64(api.DecodeU32(params[1]))
+					if n > 64<<10 {
 						s.fail("random_limit")
 					}
-					s.randomBytes += params[1]
+					s.randomBytes += n
 					if s.randomBytes > 256<<10 {
 						s.fail("random_limit")
 					}
 				}
-				if slices.Contains(def.ExportNames(), "fd_write") && len(params) == 4 && params[2] > 64 {
+				if slices.Contains(def.ExportNames(), "fd_write") && len(params) == 4 && api.DecodeU32(params[2]) > 64 {
 					s.fail("log_limit")
 				}
 				if s.calls > MaxHostCalls {
