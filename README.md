@@ -6,7 +6,7 @@
 
 ## 构建与验证
 
-固定 `toolchain go1.27.3`，构建工具会核对正在执行的工具链，离线构建插件，只允许标准库和本模块源码。wazero 固定 v1.12.0；不使用 cgo 或脚本引擎。
+固定 `toolchain go1.27.3`：构建工具以 `GOTOOLCHAIN=go1.27.3` 精确切换并核对工具链，主机 Go 可以是更新的补丁版本；工具链模块须事先下载到模块缓存（经校验和数据库核验），插件源码离线构建，只允许标准库和本模块源码。wazero 固定 v1.12.0；不使用 cgo 或脚本引擎。
 
 ```sh
 export GOWORK=off
@@ -15,7 +15,7 @@ make plugins-verify
 make bench
 ```
 
-`check` 执行 vet 和 race 测试，测试期间从 testdata 的 Go 源码构建恶意 reactor，另验证四个实际插件。`plugins-replay` 构建全部插件到忽略的 dist/ 后回放全部 fixtures。基准不设置通过阈值。CI 使用 Go 1.27.x 初始化，再显式选择固定 1.27.3，执行完整验证和 govulncheck；本地有现成 govulncheck 时也应运行。
+`check` 执行 vet 和 race 测试，测试期间从 testdata 的 Go 源码构建恶意 reactor，另验证四个实际插件。`plugins-replay` 构建全部插件到忽略的 dist/ 后回放全部 fixtures。基准不设置通过阈值。CI 使用最新的 Go 1.27.x 补丁版本执行测试与 govulncheck，先下载固定的 1.27.3 工具链供插件构建切换使用；本地有现成 govulncheck 时也应运行。
 
 ```sh
 bin/pluginctl build --source plugins/sim_json_rsa --out dist/sim_json_rsa

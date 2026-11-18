@@ -17,14 +17,13 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-go@40f1582b2485089dde7abd97c1529aa768e1baff # v5
         with:
-          # Plugin builds and source re-verification require exactly go1.27.3.
-          go-version: '1.27.3'
+          # Host Go follows the latest patch release; plugin builds switch to the
+          # exact reactor toolchain through GOTOOLCHAIN in the build tool.
+          go-version: '1.27.x'
       - name: Download dependencies
         run: go mod download
-      - name: Select exact reactor toolchain
-        run: |
-          pinned_root="$(GOTOOLCHAIN=go1.27.3 go env GOROOT)"
-          echo "$pinned_root/bin" >> "$GITHUB_PATH"
+      - name: Download the exact reactor toolchain
+        run: GOTOOLCHAIN=go1.27.3 go version
       - run: test -z "$(gofmt -l .)"
       - name: Check, build, and replay all plugins
         run: make check build plugins-verify

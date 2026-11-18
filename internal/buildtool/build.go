@@ -23,8 +23,12 @@ import (
 
 const Toolchain = "go1.27.3"
 
+// GoEnv selects the exact reactor toolchain with GOTOOLCHAIN instead of
+// requiring the host Go to match, so services and scanners can use patched Go.
+// The toolchain module must already be cached (verified via GOSUMDB); plugin
+// sources stay offline with GOPROXY=off.
 func GoEnv() []string {
-	overrides := map[string]string{"GOWORK": "off", "GOOS": "wasip1", "GOARCH": "wasm", "CGO_ENABLED": "0", "GOTOOLCHAIN": "local", "GOPROXY": "off", "GOSUMDB": "off", "GOFLAGS": "", "GOEXPERIMENT": "", "GODEBUG": "", "GOWASM": ""}
+	overrides := map[string]string{"GOWORK": "off", "GOOS": "wasip1", "GOARCH": "wasm", "CGO_ENABLED": "0", "GOTOOLCHAIN": Toolchain, "GOPROXY": "off", "GOSUMDB": "sum.golang.org", "GOFLAGS": "", "GOEXPERIMENT": "", "GODEBUG": "", "GOWASM": ""}
 	env := []string{}
 	for _, v := range os.Environ() {
 		k, _, _ := strings.Cut(v, "=")

@@ -63,7 +63,7 @@ var asset string`,
 	}
 }
 func TestBuildEnvironment(t *testing.T) {
-	for _, want := range []string{"GOWORK=off", "GOOS=wasip1", "GOARCH=wasm", "CGO_ENABLED=0", "GOPROXY=off", "GOTOOLCHAIN=local"} {
+	for _, want := range []string{"GOWORK=off", "GOOS=wasip1", "GOARCH=wasm", "CGO_ENABLED=0", "GOPROXY=off", "GOTOOLCHAIN=" + Toolchain, "GOSUMDB=sum.golang.org"} {
 		found := false
 		key, _, _ := strings.Cut(want, "=")
 		for _, v := range GoEnv() {
